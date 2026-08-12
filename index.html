@@ -184,7 +184,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div><div class="actions"><button class="btn primary" type="submit">Salvar lote do produto</button><button class="btn light" type="reset">Limpar</button></div></form>
 </div>
 <div class="panel"><h2>📋 Histórico de lotes do produto</h2>
-<div class="toolbar"><input type="date" id="phStart"><input type="date" id="phEnd"><select id="phSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><input id="phLot" placeholder="Pesquisar lote do produto..."><button class="btn primary" type="button" onclick="renderProductLotHistory()">Filtrar</button></div>
+<div class="toolbar"><input type="date" id="phStart"><input type="date" id="phEnd"><select id="phSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><input id="phLot" placeholder="Pesquisar lote do produto..."><button class="btn primary" type="button" onclick="renderProductLotHistory()">Filtrar</button><button class="btn light" type="button" onclick="exportProductLotCSV()">Exportar CSV</button></div>
 <div class="table-wrap"><table><thead><tr><th>Data</th><th>Setor</th><th>Lote do produto</th><th>Ordem de produção</th><th>Responsável</th><th>Observação</th></tr></thead><tbody id="productLotBody"></tbody></table></div>
 </div>
 </section>
@@ -454,6 +454,32 @@ function renderProductLotHistory(){
   const a=db.productLots.filter(x=>(!st||x.date>=st)&&(!en||x.date<=en)&&(!s||x.sector===s)&&(!q||String(x.lot||'').toLowerCase().includes(q)))
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
   $('productLotBody').innerHTML=a.length?a.map(x=>`<tr><td>${fmt(x.date)}</td><td>${esc(x.sector)}</td><td><strong>${esc(x.lot)}</strong></td><td>${esc(x.op)}</td><td>${esc(x.responsible)}</td><td>${esc(x.note)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Nenhum lote de produto encontrado.</td></tr>';
+}
+
+function exportProductLotCSV(){
+  const st=$('phStart').value,en=$('phEnd').value,s=$('phSector').value,q=($('phLot').value||'').trim().toLowerCase();
+
+  const a=db.productLots
+    .filter(x=>(!st||x.date>=st)&&(!en||x.date<=en)&&(!s||x.sector===s)&&(!q||String(x.lot||'').toLowerCase().includes(q)))
+    .sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+
+  if(!a.length){
+    return alert('Nenhum lote de produto encontrado para os filtros selecionados.');
+  }
+
+  const rows=[['Data','Setor','Lote do produto','Ordem de produção','Responsável','Observação']];
+  a.forEach(x=>rows.push([x.date,x.sector,x.lot,x.op,x.responsible,x.note]));
+
+  const csv=rows
+    .map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';'))
+    .join('\n');
+
+  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const aLink=document.createElement('a');
+  aLink.href=URL.createObjectURL(b);
+  aLink.download=`lotes_produto_${today()}.csv`;
+  aLink.click();
+  setTimeout(()=>URL.revokeObjectURL(aLink.href),1000);
 }
 
 function updateAll(){
