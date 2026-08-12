@@ -58,7 +58,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
   <div class="login-box">
     <h2>🔐 Controle de BAGS</h2>
     <p>Entre para acessar o estoque compartilhado.</p>
-    <form id="loginForm" action="javascript:void(0)" novalidate>
+    <form id="loginForm">
       <input id="loginEmail" type="email" placeholder="E-mail" required>
       <input id="loginPassword" type="password" placeholder="Senha" required>
       <button id="loginButton" class="btn primary" style="width:100%;margin-top:10px" type="submit">Entrar</button>
@@ -113,6 +113,19 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </section>
 
 <section id="estoque" class="page">
+<div class="panel"><h2>➕ Entrada de BAGS no estoque</h2>
+<div class="info">Registre aqui as entradas de novos Big Bags. A entrada altera automaticamente o saldo do estoque e fica vinculada ao lote informado.</div>
+<form id="entryForm"><div class="form-grid">
+<div class="field"><label>Data *</label><input type="date" id="eDate" required></div>
+<div class="field"><label>Setor *</label><select id="eSector" onchange="syncEntryType()" required><option>Farinheira</option><option>Colorífico</option></select></div>
+<div class="field"><label>Quantidade de BAGS *</label><input type="number" id="eQty" min="1" step="1" required></div>
+<div class="field"><label>Tipo de BAG</label><div id="eType" class="fixed">Big Bag 1.300 kg</div></div>
+<div class="field"><label>Código</label><div id="eCode" class="fixed">1437</div></div>
+<div class="field"><label>Lote do Big Bag *</label><input id="eLot" placeholder="Ex.: LB25081101" required></div>
+<div class="field"><label>Responsável</label><input id="eResponsible"></div>
+<div class="field full"><label>Observação</label><textarea id="eNote" placeholder="Ex.: recebimento, NF, fornecedor, conferência etc."></textarea></div>
+</div><div class="actions"><button class="btn success" type="submit">Registrar entrada</button><button class="btn light" type="reset">Limpar</button></div></form>
+</div>
 <div class="panel"><h2>📦 Estoque por tipo e lote</h2>
 <div class="toolbar">
 <select id="stockSector" onchange="renderStock()"><option value="">Todos</option><option value="Farinheira">Farinheira</option><option value="Colorífico">Colorífico</option></select>
@@ -223,7 +236,14 @@ let docks = {records:[]};
 
 const $ = id => document.getElementById(id);
 
-function today(){ return new Date().toISOString().slice(0,10); }
+function today(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function setToday(id){ const el=$(id); if(el) el.value=today(); }
 function fmt(d){ if(!d)return ''; const [y,m,day]=String(d).slice(0,10).split('-'); return day+'/'+m+'/'+y; }
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 
@@ -326,6 +346,12 @@ function syncDockType(){
   const s=$('dSector').value;
   $('dType').textContent=CONFIG[s].type;
   $('dCode').textContent=CONFIG[s].code;
+}
+
+function syncEntryType(){
+  const s=$('eSector').value;
+  $('eType').textContent=CONFIG[s].type;
+  $('eCode').textContent=CONFIG[s].code;
 }
 
 function syncConsumption(){
@@ -443,11 +469,19 @@ function updateAll(){
 function friendlyError(err){
   const msg=err?.message||String(err||'Erro desconhecido');
   if(/Failed to fetch/i.test(msg)) return 'Não foi possível conectar ao Supabase. Verifique a internet, a URL do projeto e se o projeto está ativo.';
+  if(/JWT issued at future/i.test(msg)) return 'O relógio do dispositivo está adiantado em relação ao servidor. Ajuste data, hora e fuso horário automaticamente e tente novamente.';
+  if(/JWT expired|Invalid JWT|JWT/i.test(msg)) return 'A sessão de acesso expirou ou ficou inválida. Entre novamente no aplicativo.';
   return msg;
 }
 
 async function deleteMovement(id){
   const m=db.movements.find(x=>x.id===id); if(!m)return;
+  if(m.kind==='ENTRADA'){
+    const saldoAtual=movementStock(m.sector,m.lot);
+    if(saldoAtual-Number(m.qty)<0){
+      return alert('Não é possível apagar esta entrada porque existem consumos vinculados a ela e o saldo do lote ficaria negativo.');
+    }
+  }
   if(!confirm(`Apagar esta movimentação?\n\n${fmt(m.date)} — ${m.sector} — ${m.lot} — ${m.qty} BAG(s)\n\nO estoque será recalculado.`))return;
   try{await removeMovement(id);alert('Movimentação apagada com sucesso.');}
   catch(e){alert('Erro ao apagar: '+friendlyError(e));}
@@ -476,10 +510,11 @@ function exportCSV(){
   a.href=URL.createObjectURL(b);a.download=`relatorio_bags_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
 }
 
-function downloadBackup(){
-  const backup={version:4,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
+function downloadBackup(prefix='backup_rastreabilidade_bags'){
+  const backup={version:5,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
   const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(b);a.download=`backup_rastreabilidade_bags_${today()}.json`;a.click();URL.revokeObjectURL(a.href);
+  a.href=URL.createObjectURL(b);a.download=`${prefix}_${today()}.json`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
 async function restoreBackup(ev){
@@ -487,7 +522,8 @@ async function restoreBackup(ev){
   try{
     const x=JSON.parse(await f.text());
     if(!Array.isArray(x.movements)||!Array.isArray(x.productLots||[])||!Array.isArray(x.docks||[])) throw new Error('Estrutura do backup inválida.');
-    if(!confirm('Restaurar este backup substituirá os lançamentos atuais no banco compartilhado. Continuar?'))return;
+    if(!confirm('Restaurar este backup substituirá os lançamentos atuais no banco compartilhado. Um backup automático dos dados atuais será baixado antes da restauração. Continuar?'))return;
+    downloadBackup('backup_antes_da_restauracao');
 
     let r=await sb.from('movements').delete().not('id','is',null); if(r.error)throw r.error;
     r=await sb.from('product_lots').delete().not('id','is',null); if(r.error)throw r.error;
@@ -529,13 +565,31 @@ $('nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
   updateAll();
 }));
 
+$('entryForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  try{
+    const sec=$('eSector').value;
+    const lot=$('eLot').value.trim();
+    const qty=Number($('eQty').value);
+    if(!CONFIG[sec]||!$('eDate').value||!lot||!Number.isInteger(qty)||qty<1){
+      return alert('Informe a data, lote e uma quantidade inteira maior que zero.');
+    }
+    const m={date:$('eDate').value,kind:'ENTRADA',sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,lot,qty,responsible:$('eResponsible').value.trim(),note:$('eNote').value.trim()};
+    await addMovement(m);
+    e.target.reset();
+    setToday('eDate');
+    syncEntryType();
+    alert('Entrada registrada com sucesso.');
+  }catch(err){alert('Erro ao registrar entrada: '+friendlyError(err));}
+});
+
 $('dockForm').addEventListener('submit',async e=>{
   e.preventDefault();
   try{
     const sec=$('dSector').value;
     const m={date:$('dDate').value,sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,qty:Number($('dQty').value),responsible:$('dResponsible').value.trim(),note:$('dNote').value.trim()};
-    if(!m.date||m.qty<0)return alert('Informe a data e uma quantidade válida.');
-    await addDock(m);e.target.reset();$('dDate').value=today();syncDockType();alert('Lançamento das docas registrado com sucesso.');
+    if(!m.date||!Number.isInteger(m.qty)||m.qty<0)return alert('Informe a data e uma quantidade inteira válida.');
+    await addDock(m);e.target.reset();setToday('dDate');syncDockType();alert('Lançamento das docas registrado com sucesso.');
   }catch(err){alert('Erro ao salvar nas docas: '+friendlyError(err));}
 });
 
@@ -543,10 +597,10 @@ $('consumptionForm').addEventListener('submit',async e=>{
   e.preventDefault();
   try{
     const s=$('cSector').value,lot=$('cLot').value,q=Number($('cQty').value),avail=movementStock(s,lot);
-    if(!lot||q<1)return alert('Selecione um lote e informe a quantidade.');
+    if(!lot||!Number.isInteger(q)||q<1)return alert('Selecione um lote e informe uma quantidade inteira maior que zero.');
     if(q>avail)return alert(`Saldo insuficiente no lote ${lot}. Disponível: ${avail} BAG(s).`);
     const m={date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot,qty:q,responsible:$('cResponsible').value.trim(),note:`Turno: ${$('cShift').value}${$('cNote').value.trim()?' — '+$('cNote').value.trim():''}`};
-    await addMovement(m);e.target.reset();$('cDate').value=today();syncConsumption();alert('Consumo registrado com sucesso.');
+    await addMovement(m);e.target.reset();setToday('cDate');syncConsumption();alert('Consumo registrado com sucesso.');
   }catch(err){alert('Erro ao registrar consumo: '+friendlyError(err));}
 });
 
@@ -555,77 +609,74 @@ $('productLotForm').addEventListener('submit',async e=>{
   try{
     const x={date:$('pDate').value,sector:$('pSector').value,lot:$('pLot').value.trim(),op:$('pOP').value.trim(),responsible:$('pResponsible').value.trim(),note:$('pNote').value.trim()};
     if(!x.date||!x.lot)return alert('Informe a data e o lote do produto.');
-    await addProductLot(x);e.target.reset();$('pDate').value=today();alert('Lote do produto registrado com sucesso.');
+    await addProductLot(x);e.target.reset();setToday('pDate');alert('Lote do produto registrado com sucesso.');
   }catch(err){alert('Erro ao registrar lote: '+friendlyError(err));}
 });
 
-async function doLogin(){
-  const email=$('loginEmail').value.trim();
-  const password=$('loginPassword').value;
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('loginEmail').value.trim(),password=$('loginPassword').value;
   const btn=$('loginButton');
+  if(!email||!password){showLogin('Informe o e-mail e a senha.',true);return;}
 
-  if(!email || !password){
-    showLogin('Informe o e-mail e a senha.',true);
-    return;
-  }
-
-  btn.disabled=true;
-  btn.textContent='Entrando...';
-  $('loginMsg').style.color='#b45309';
-  $('loginMsg').textContent='Conectando ao Supabase...';
-
+  btn.disabled=true;btn.textContent='Entrando...';showLogin('Entrando...');
   try{
-    const result=await sb.auth.signInWithPassword({email:email,password:password});
-    if(result.error) throw result.error;
-    if(!result.data || !result.data.user) throw new Error('O Supabase não retornou o usuário.');
-
-    currentUser=result.data.user;
-
-    $('loginMsg').textContent='Login confirmado. Carregando dados...';
-
-    // Só esconde a tela de login depois que o banco foi carregado.
-    await loadCloud();
-
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    if(!data?.user) throw new Error('Login não retornou um usuário.');
+    currentUser=data.user;
     showApp();
     $('loginMsg').textContent='';
+    await safeLoadCloud();
   }catch(err){
-    console.error('LOGIN:',err);
-    currentUser=null;
-    try{ await sb.auth.signOut(); }catch(_){}
-    showLogin('Não foi possível entrar: '+friendlyError(err),true);
+    console.error(err);
+    showLogin('Erro ao entrar: '+friendlyError(err),true);
   }finally{
-    btn.disabled=false;
-    btn.textContent='Entrar';
+    btn.disabled=false;btn.textContent='Entrar';
   }
-}
-
-$('loginForm').addEventListener('submit',function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  doLogin();
-  return false;
 });
 
 async function logout(){
+  try{await sb.auth.signOut({scope:'local'});}
+  catch(e){alert('Erro ao sair: '+friendlyError(e));}
+}
+
+let loadingCloud=false;
+let lastLoadedUserId=null;
+
+async function safeLoadCloud(){
+  if(!currentUser||loadingCloud)return;
+  loadingCloud=true;
   try{
-    await sb.auth.signOut();
-  }catch(e){
-    alert('Erro ao sair: '+friendlyError(e));
+    await loadCloud();
+    lastLoadedUserId=currentUser.id;
+  }finally{
+    loadingCloud=false;
   }
 }
 
-sb.auth.onAuthStateChange((_event,session)=>{
-  if(_event==='SIGNED_OUT'){
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_OUT' || !session){
     currentUser=null;
+    lastLoadedUserId=null;
     showLogin('');
+    return;
+  }
+  currentUser=session.user;
+  showApp();
+  if(event==='SIGNED_IN' || event==='INITIAL_SESSION' || lastLoadedUserId!==currentUser.id){
+    try{await safeLoadCloud();}
+    catch(e){console.error(e);showLogin('Erro ao carregar o banco: '+friendlyError(e),true);}
   }
 });
 
 async function boot(){
-  $('dDate').value=today();
-  $('cDate').value=today();
-  $('pDate').value=today();
+  setToday('dDate');
+  setToday('cDate');
+  setToday('pDate');
+  setToday('eDate');
   syncDockType();
+  syncEntryType();
   updateAll();
 
   try{
@@ -633,14 +684,8 @@ async function boot(){
     if(error)throw error;
     if(data.session){
       currentUser=data.session.user;
-      try{
-        await loadCloud();
-        showApp();
-      }catch(e){
-        console.error('BOOT LOAD:',e);
-        await sb.auth.signOut();
-        showLogin('Não foi possível carregar os dados: '+friendlyError(e),true);
-      }
+      showApp();
+      if(lastLoadedUserId!==currentUser.id) await safeLoadCloud();
     }else{
       showLogin('');
     }
