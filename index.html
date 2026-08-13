@@ -226,8 +226,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_P_AFrkXHICBOM0uGIljOTw_Awew8M59
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const CONFIG = {
-  Farinheira:{type:'Big Bag 1.300 kg',code:'1437',initial:47},
-  Colorífico:{type:'Big Bag 1.250 kg',code:'1436',initial:14}
+  Farinheira:{type:'Big Bag 1.300 kg',code:'1437'},
+  Colorífico:{type:'Big Bag 1.250 kg',code:'1436'}
 };
 
 let currentUser = null;
@@ -315,7 +315,7 @@ async function removeDock(id){
 }
 
 function movementStock(sec,lot){
-  let q=(lot==='ESTOQUE INICIAL') ? CONFIG[sec].initial : 0;
+  let q=0;
   for(const m of db.movements){
     if(m.sector!==sec || m.lot!==lot) continue;
     q += m.kind==='ENTRADA' ? Number(m.qty) : -Number(m.qty);
@@ -324,7 +324,7 @@ function movementStock(sec,lot){
 }
 
 function totalStock(sec){
-  let q=CONFIG[sec].initial;
+  let q=0;
   for(const m of db.movements){
     if(m.sector===sec) q += m.kind==='ENTRADA' ? Number(m.qty) : -Number(m.qty);
   }
@@ -332,7 +332,7 @@ function totalStock(sec){
 }
 
 function lots(sec){
-  const map={'ESTOQUE INICIAL':CONFIG[sec].initial};
+  const map={};
   db.movements.filter(m=>m.sector===sec).forEach(m=>{
     if(!(m.lot in map)) map[m.lot]=0;
     map[m.lot]+=m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty);
@@ -396,9 +396,7 @@ function renderStock(){
   for(const sec of ['Farinheira','Colorífico']){
     if(s&&s!==sec) continue;
     for(const x of lots(sec)){
-      const ent=x.lot==='ESTOQUE INICIAL'
-        ? CONFIG[sec].initial
-        : db.movements.filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0);
+      const ent=db.movements.filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0);
       const con=db.movements.filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='CONSUMO').reduce((a,m)=>a+Number(m.qty),0);
       if(String(x.lot).toLowerCase().includes(q)){
         rows.push(`<tr><td>${esc(sec)}</td><td>${CONFIG[sec].code}</td><td>${esc(CONFIG[sec].type)}</td><td>${esc(x.lot)}</td><td>${ent}</td><td>${con}</td><td class="${x.qty<=0?'stock-low':'stock-ok'}">${x.qty}</td></tr>`);
@@ -457,18 +455,14 @@ function renderProductLotHistory(){
 }
 
 function exportProductLotCSV(){
-  const st=$('phStart').value;
-  const en=$('phEnd').value;
-  const s=$('phSector').value;
-  const q=($('phLot').value||'').trim().toLowerCase();
+  const st=$('phStart').value,en=$('phEnd').value,s=$('phSector').value,q=($('phLot').value||'').trim().toLowerCase();
 
   const a=db.productLots
     .filter(x=>(!st||x.date>=st)&&(!en||x.date<=en)&&(!s||x.sector===s)&&(!q||String(x.lot||'').toLowerCase().includes(q)))
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
 
   if(!a.length){
-    alert('Não há registros de lotes do produto para exportar com os filtros atuais.');
-    return;
+    return alert('Nenhum lote de produto encontrado para os filtros selecionados.');
   }
 
   const rows=[['Data','Setor','Lote do produto','Ordem de produção','Responsável','Observação']];
@@ -479,11 +473,11 @@ function exportProductLotCSV(){
     .join('\n');
 
   const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
-  const aEl=document.createElement('a');
-  aEl.href=URL.createObjectURL(b);
-  aEl.download=`lotes_produto_${today()}.csv`;
-  aEl.click();
-  setTimeout(()=>URL.revokeObjectURL(aEl.href),1000);
+  const aLink=document.createElement('a');
+  aLink.href=URL.createObjectURL(b);
+  aLink.download=`lotes_produto_${today()}.csv`;
+  aLink.click();
+  setTimeout(()=>URL.revokeObjectURL(aLink.href),1000);
 }
 
 function updateAll(){
