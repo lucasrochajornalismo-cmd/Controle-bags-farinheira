@@ -51,6 +51,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
 .fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
+.hint{font-size:11px;color:#657482;margin-top:4px}
 </style>
 </head>
 <body>
@@ -166,6 +167,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="field"><label>Tipo de BAG</label><div id="cType" class="fixed">Big Bag 1.300 kg</div></div>
 <div class="field"><label>Código</label><div id="cCode" class="fixed">1437</div></div>
 <div class="field full"><label>Regra FIFO</label><div id="fifoConsumptionInfo" class="fixed">O sistema selecionará automaticamente o lote mais antigo com saldo disponível.</div></div>
+<div class="field full"><label>Lote utilizado manualmente <span style="font-weight:400;color:#657482">(opcional)</span></label><input id="cManualLot" placeholder="Deixe vazio para usar FIFO automaticamente"><div class="hint">Se informar um lote, o sistema usará esse lote em vez do FIFO, desde que haja saldo suficiente.</div></div>
 <div class="field"><label>Turno</label><select id="cShift"><option>1º Turno</option><option>2º Turno</option><option>3º Turno</option><option>Administrativo</option></select></div>
 <div class="field"><label>Responsável</label><input id="cResponsible"></div>
 <div class="field full"><label>Observação / produção relacionada</label><textarea id="cNote" placeholder="Ex.: produção do lote de farinha, ordem de produção etc."></textarea></div>
@@ -453,7 +455,7 @@ function renderDockHistory(){
   $('dockBody').innerHTML=a.length?a.map(m=>`<tr>
     <td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.code)}</td><td>${esc(m.type)}</td>
     <td><strong>${m.qty}</strong></td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td>
-    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteDock(${m.id})">Apagar</button></td>
+    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="editDock(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteDock(${m.id})">Apagar</button></td>
   </tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum lançamento das docas para os filtros.</td></tr>';
 }
 
@@ -502,7 +504,7 @@ function renderReport(){
     <td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${esc(m.kind)}</span></td>
     <td>${esc(m.sector)}</td><td>${esc(m.code)}</td><td>${esc(m.type)}</td><td>${esc(m.lot)}</td><td>${m.qty}</td>
     <td>${esc(m.responsible)}</td><td>${esc(m.note)}</td>
-    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td>
+    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="editMovement(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td>
   </tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum registro para os filtros.</td></tr>';
 }
 
@@ -557,6 +559,57 @@ function friendlyError(err){
   return msg;
 }
 
+async function editMovement(id){
+  const m=db.movements.find(x=>x.id===id); if(!m)return;
+  const date=prompt('Data (AAAA-MM-DD):',m.date); if(date===null)return;
+  const lot=prompt('Lote:',m.lot||''); if(lot===null)return;
+  const qtyRaw=prompt('Quantidade de BAGS:',String(m.qty)); if(qtyRaw===null)return;
+  const qty=Number(qtyRaw);
+  const responsible=prompt('Responsável:',m.responsible||''); if(responsible===null)return;
+  const note=prompt('Observação:',m.note||''); if(note===null)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!lot.trim()||!Number.isInteger(qty)||qty<1){
+    return alert('Data, lote e quantidade são obrigatórios. A quantidade deve ser um número inteiro maior que zero.');
+  }
+  // Verifica o saldo resultante do lote, desconsiderando o próprio registro durante a edição.
+  if(m.kind==='CONSUMO'){
+    const base=db.movements.filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
+      .reduce((a,x)=>a+(x.kind==='ENTRADA'?Number(x.qty):-Number(x.qty)),0);
+    if(qty>base)return alert(`Saldo insuficiente no lote ${lot.trim()}. Disponível para esta edição: ${base} BAG(s).`);
+  }
+  if(m.kind==='ENTRADA'){
+    const base=db.movements.filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
+      .reduce((a,x)=>a+(x.kind==='ENTRADA'?Number(x.qty):-Number(x.qty)),0);
+    // Uma entrada editada não pode deixar nenhum saldo do lote negativo.
+    if(base+qty<0)return alert('A edição deixaria o saldo do lote negativo.');
+  }
+  try{
+    const patch={date,lot:lot.trim(),qty,responsible:responsible.trim(),note:note.trim()};
+    const {data,error}=await sb.from('movements').update(patch).eq('id',id).select().single();
+    if(error)throw error;
+    db.movements=db.movements.map(x=>x.id===id?data:x);
+    updateAll();
+    alert('Movimentação editada com sucesso. O estoque e o FIFO foram recalculados.');
+  }catch(e){alert('Erro ao editar movimentação: '+friendlyError(e));}
+}
+
+async function editDock(id){
+  const m=docks.records.find(x=>x.id===id); if(!m)return;
+  const date=prompt('Data (AAAA-MM-DD):',m.date); if(date===null)return;
+  const qtyRaw=prompt('Quantidade nas docas:',String(m.qty)); if(qtyRaw===null)return;
+  const qty=Number(qtyRaw);
+  const responsible=prompt('Responsável:',m.responsible||''); if(responsible===null)return;
+  const note=prompt('Observação:',m.note||''); if(note===null)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(qty)||qty<0)return alert('Informe uma data válida e uma quantidade inteira igual ou maior que zero.');
+  try{
+    const patch={date,qty,responsible:responsible.trim(),note:note.trim()};
+    const {data,error}=await sb.from('dock_records').update(patch).eq('id',id).select().single();
+    if(error)throw error;
+    docks.records=docks.records.map(x=>x.id===id?data:x);
+    updateAll();
+    alert('Lançamento das docas editado com sucesso.');
+  }catch(e){alert('Erro ao editar lançamento: '+friendlyError(e));}
+}
+
 async function deleteMovement(id){
   const m=db.movements.find(x=>x.id===id); if(!m)return;
   if(m.kind==='ENTRADA'){
@@ -594,7 +647,7 @@ function exportCSV(){
 }
 
 function downloadBackup(prefix='backup_rastreabilidade_bags'){
-  const backup={version:5,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
+  const backup={version:6,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
   const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download=`${prefix}_${today()}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -680,23 +733,34 @@ $('consumptionForm').addEventListener('submit',async e=>{
   e.preventDefault();
   try{
     const s=$('cSector').value,q=Number($('cQty').value);
+    const manualLot=($('cManualLot').value||'').trim();
     if(!$('cDate').value||!Number.isInteger(q)||q<1)return alert('Informe a data e uma quantidade inteira maior que zero.');
-    const queue=fifoLots(s);
-    const total=queue.reduce((a,x)=>a+x.qty,0);
-    if(q>total)return alert(`Saldo insuficiente em ${s}. Disponível total seguindo FIFO: ${total} BAG(s).`);
 
-    let remaining=q;
-    const movements=[];
     const noteBase=`Turno: ${$('cShift').value}${$('cNote').value.trim()?' — '+$('cNote').value.trim():''}`;
-    for(const x of queue){
-      if(remaining<=0) break;
-      const take=Math.min(remaining,x.qty);
-      movements.push({date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:x.lot,qty:take,responsible:$('cResponsible').value.trim(),note:`FIFO automático — ${noteBase}`});
-      remaining-=take;
+    let movements=[];
+
+    if(manualLot){
+      const item=fifoLots(s).find(x=>String(x.lot).toLowerCase()===manualLot.toLowerCase());
+      if(!item)return alert(`O lote ${manualLot} não foi encontrado ou não possui saldo disponível em ${s}.`);
+      if(q>item.qty)return alert(`Saldo insuficiente no lote ${item.lot}. Saldo disponível: ${item.qty} BAG(s).`);
+      movements=[{date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:item.lot,qty:q,responsible:$('cResponsible').value.trim(),note:`Lote informado manualmente — operador não seguiu FIFO — ${noteBase}`}];
+    }else{
+      const queue=fifoLots(s);
+      const total=queue.reduce((a,x)=>a+x.qty,0);
+      if(q>total)return alert(`Saldo insuficiente em ${s}. Disponível total seguindo FIFO: ${total} BAG(s).`);
+      let remaining=q;
+      for(const x of queue){
+        if(remaining<=0)break;
+        const take=Math.min(remaining,x.qty);
+        movements.push({date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:x.lot,qty:take,responsible:$('cResponsible').value.trim(),note:`FIFO automático — ${noteBase}`});
+        remaining-=take;
+      }
     }
+
     await addMovements(movements);
     e.target.reset();setToday('cDate');syncConsumption();renderFIFO();
-    alert(`Consumo de ${q} BAG(s) registrado automaticamente pela regra FIFO.\n\n${movements.map(m=>`${m.lot}: ${m.qty} BAG(s)`).join('\n')}`);
+    const modo=manualLot?'Lote informado manualmente':'FIFO automático';
+    alert(`Consumo de ${q} BAG(s) registrado — ${modo}.\n\n${movements.map(m=>`${m.lot}: ${m.qty} BAG(s)`).join('\n')}`);
   }catch(err){alert('Erro ao registrar consumo: '+friendlyError(err));}
 });
 
