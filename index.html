@@ -50,6 +50,7 @@ th{background:#f5f8fa;font-size:12px;white-space:nowrap}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
+.fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
 </style>
 </head>
 <body>
@@ -90,14 +91,15 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <button data-page="consumo">🔄 Consumo</button>
 <button data-page="loteProduto">🏷️ Lote do Produto</button>
 <button data-page="rastreio">🔎 Rastreabilidade</button>
+<button data-page="fifo">📦 FIFO — Ordem de Consumo</button>
 <button data-page="relatorios">📋 Relatórios</button>
 <button data-page="backup">💾 Backup</button>
 </nav>
 
 <section id="dashboard" class="page active">
 <div class="cards">
-<div class="card"><div class="label">Farinheira · 1437</div><div id="kFar" class="value green">47</div></div>
-<div class="card"><div class="label">Colorífico · 1436</div><div id="kCol" class="value yellow">14</div></div>
+<div class="card"><div class="label">Farinheira · 1437</div><div id="kFar" class="value green">0</div></div>
+<div class="card"><div class="label">Colorífico · 1436</div><div id="kCol" class="value yellow">0</div></div>
 <div class="card"><div class="label">Consumo no mês · Farinheira</div><div id="kConsFar" class="value red">0</div></div>
 <div class="card"><div class="label">Consumo no mês · Colorífico</div><div id="kConsCol" class="value red">0</div></div>
 </div>
@@ -156,14 +158,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 
 <section id="consumo" class="page">
 <div class="panel"><h2>🔄 Registrar consumo de BAGS</h2>
-<div class="alert">O consumo só pode ser registrado quando houver saldo disponível no lote selecionado. O sistema baixa automaticamente o estoque e mantém a rastreabilidade.</div>
+<div class="alert">O consumo será registrado automaticamente pela regra <strong>FIFO</strong>: primeiro o lote mais antigo com saldo. Se a quantidade não couber em um único lote, o sistema continuará automaticamente nos próximos lotes. Entradas do mesmo lote feitas em dias diferentes são somadas no mesmo lote.</div>
 <form id="consumptionForm"><div class="form-grid">
 <div class="field"><label>Data *</label><input type="date" id="cDate" required></div>
 <div class="field"><label>Setor *</label><select id="cSector" onchange="syncConsumption()"><option>Farinheira</option><option>Colorífico</option></select></div>
 <div class="field"><label>Quantidade de BAGS *</label><input type="number" id="cQty" min="1" step="1" required></div>
 <div class="field"><label>Tipo de BAG</label><div id="cType" class="fixed">Big Bag 1.300 kg</div></div>
 <div class="field"><label>Código</label><div id="cCode" class="fixed">1437</div></div>
-<div class="field"><label>Lote *</label><select id="cLot" required></select></div>
+<div class="field full"><label>Regra FIFO</label><div id="fifoConsumptionInfo" class="fixed">O sistema selecionará automaticamente o lote mais antigo com saldo disponível.</div></div>
 <div class="field"><label>Turno</label><select id="cShift"><option>1º Turno</option><option>2º Turno</option><option>3º Turno</option><option>Administrativo</option></select></div>
 <div class="field"><label>Responsável</label><input id="cResponsible"></div>
 <div class="field full"><label>Observação / produção relacionada</label><textarea id="cNote" placeholder="Ex.: produção do lote de farinha, ordem de produção etc."></textarea></div>
@@ -193,6 +195,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="panel"><h2>🔎 Rastreabilidade por lote</h2>
 <div class="toolbar"><select id="traceSector" onchange="renderTrace()"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><input id="traceLot" placeholder="Digite o lote para rastrear..." oninput="renderTrace()"></div>
 <div id="traceResult"></div>
+</div>
+</section>
+
+<section id="fifo" class="page">
+<div class="panel"><h2>📦 FIFO — Ordem de Consumo</h2>
+<div class="info"><strong>Regra FIFO:</strong> o lote com a primeira entrada mais antiga e saldo disponível será utilizado primeiro. Se o mesmo lote chegar em vários dias, as quantidades são somadas em uma única posição de estoque; a primeira data de entrada define sua prioridade.</div>
+<div class="toolbar"><select id="fifoSector" onchange="renderFIFO()"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><button class="btn primary" type="button" onclick="renderFIFO()">Atualizar ordem FIFO</button></div>
+<div id="fifoResult"></div>
 </div>
 </section>
 
@@ -286,6 +296,15 @@ async function addMovement(m){
   updateAll();
 }
 
+async function addMovements(list){
+  if(!list.length) return;
+  const payload=list.map(m=>({...m,created_by:currentUser.id}));
+  const {data,error}=await sb.from('movements').insert(payload).select();
+  if(error) throw error;
+  db.movements.push(...(data||[]));
+  updateAll();
+}
+
 async function addDock(m){
   const {data,error}=await sb.from('dock_records').insert({...m,created_by:currentUser.id}).select().single();
   if(error) throw error;
@@ -332,14 +351,35 @@ function totalStock(sec){
 }
 
 function lots(sec){
+  return fifoLots(sec).map(x=>({lot:x.lot,qty:x.qty})).filter(x=>x.qty!==0);
+}
+
+// FIFO consolidado por lote: entradas do mesmo lote em dias diferentes
+// são somadas. A primeira entrada do lote define sua prioridade.
+function fifoLots(sec){
   const map={};
-  db.movements.filter(m=>m.sector===sec).forEach(m=>{
-    if(!(m.lot in map)) map[m.lot]=0;
-    map[m.lot]+=m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty);
+  db.movements.filter(m=>m.sector===sec && m.lot).forEach(m=>{
+    const lot=String(m.lot).trim();
+    if(!map[lot]) map[lot]={lot,firstDate:String(m.date),firstId:Number(m.id)||0,received:0,consumed:0};
+    const x=map[lot];
+    const d=String(m.date);
+    const id=Number(m.id)||0;
+    if(d<x.firstDate || (d===x.firstDate && id<x.firstId)){x.firstDate=d;x.firstId=id;}
+    if(m.kind==='ENTRADA') x.received+=Number(m.qty)||0;
+    if(m.kind==='CONSUMO') x.consumed+=Number(m.qty)||0;
   });
-  return Object.entries(map)
-    .map(([lot,qty])=>({lot,qty}))
-    .filter(x=>x.qty!==0 || x.lot==='ESTOQUE INICIAL');
+  return Object.values(map)
+    .map(x=>({...x,qty:x.received-x.consumed}))
+    .filter(x=>x.qty>0)
+    .sort((a,b)=>String(a.firstDate).localeCompare(String(b.firstDate)) || a.firstId-b.firstId || a.lot.localeCompare(b.lot));
+}
+
+function fifoAll(){
+  const out=[];
+  for(const sec of ['Farinheira','Colorífico']){
+    for(const x of fifoLots(sec)) out.push({...x,sector:sec});
+  }
+  return out;
 }
 
 function syncDockType(){
@@ -358,10 +398,10 @@ function syncConsumption(){
   const s=$('cSector').value;
   $('cType').textContent=CONFIG[s].type;
   $('cCode').textContent=CONFIG[s].code;
-  const ls=lots(s).filter(x=>x.qty>0);
-  $('cLot').innerHTML=ls.length
-    ? ls.map(x=>`<option value="${esc(x.lot)}">${esc(x.lot)} — saldo ${x.qty}</option>`).join('')
-    : '<option value="">Sem lote com saldo</option>';
+  const first=fifoLots(s)[0];
+  $('fifoConsumptionInfo').textContent=first
+    ? `FIFO: utilizar primeiro ${first.lot} — primeira entrada ${fmt(first.firstDate)} — saldo ${first.qty} BAG(s).`
+    : 'FIFO: não há lote com saldo disponível para este setor.';
 }
 
 function updateDashboard(){
@@ -433,6 +473,25 @@ function renderTrace(){
     <strong>Saldo das movimentações:</strong> ${ms.reduce((a,m)=>a+(m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty)),0)} BAG(s)</div>
     <div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Setor</th><th>Quantidade</th><th>Responsável</th><th>Observação</th></tr></thead>
     <tbody>${ms.map(m=>`<tr><td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${esc(m.kind)}</span></td><td>${esc(m.sector)}</td><td>${m.qty}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderFIFO(){
+  const selected=$('fifoSector').value;
+  const sectors=selected?[selected]:['Farinheira','Colorífico'];
+  let html='';
+  for(const sec of sectors){
+    const rows=fifoLots(sec);
+    html+=`<div class="panel" style="margin-top:12px"><h2>${esc(sec)} — ordem de consumo</h2>`;
+    if(!rows.length){
+      html+='<div class="empty">Nenhum lote com saldo disponível.</div></div>';
+      continue;
+    }
+    const first=rows[0];
+    html+=`<div class="fifo-first"><span class="fifo-tag">UTILIZAR PRIMEIRO</span><h3 style="margin:8px 0">${esc(first.lot)}</h3><div class="kpi"><div><span>Primeira entrada</span><strong>${fmt(first.firstDate)}</strong></div><div><span>Total recebido</span><strong>${first.received} BAGS</strong></div><div><span>Consumido</span><strong>${first.consumed} BAGS</strong></div><div><span>Saldo disponível</span><strong>${first.qty} BAGS</strong></div></div></div>`;
+    html+=rows.map((x,i)=>`<div class="fifo-row ${i===0?'fifo-next':''}"><div class="fifo-priority">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º'}</div><div><strong>${esc(x.lot)}</strong><div class="fifo-muted">Primeira entrada: ${fmt(x.firstDate)}</div></div><div><span class="fifo-muted">Recebido</span><br><strong>${x.received}</strong></div><div><span class="fifo-muted">Consumido</span><br><strong>${x.consumed}</strong></div><div><span class="fifo-muted">Saldo</span><br><strong>${x.qty} BAGS</strong></div></div>`).join('');
+    html+='</div>';
+  }
+  $('fifoResult').innerHTML=html;
 }
 
 function renderReport(){
@@ -572,7 +631,7 @@ async function restoreBackup(ev){
 }
 
 async function clearAll(){
-  if(!confirm('Apagar todos os lançamentos? Os estoques iniciais 47 e 14 permanecerão.'))return;
+  if(!confirm('Apagar todos os lançamentos? O estoque ficará zerado até que novas entradas sejam registradas.'))return;
   try{
     let r=await sb.from('movements').delete().not('id','is',null);if(r.error)throw r.error;
     r=await sb.from('product_lots').delete().not('id','is',null);if(r.error)throw r.error;
@@ -620,11 +679,24 @@ $('dockForm').addEventListener('submit',async e=>{
 $('consumptionForm').addEventListener('submit',async e=>{
   e.preventDefault();
   try{
-    const s=$('cSector').value,lot=$('cLot').value,q=Number($('cQty').value),avail=movementStock(s,lot);
-    if(!lot||!Number.isInteger(q)||q<1)return alert('Selecione um lote e informe uma quantidade inteira maior que zero.');
-    if(q>avail)return alert(`Saldo insuficiente no lote ${lot}. Disponível: ${avail} BAG(s).`);
-    const m={date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot,qty:q,responsible:$('cResponsible').value.trim(),note:`Turno: ${$('cShift').value}${$('cNote').value.trim()?' — '+$('cNote').value.trim():''}`};
-    await addMovement(m);e.target.reset();setToday('cDate');syncConsumption();alert('Consumo registrado com sucesso.');
+    const s=$('cSector').value,q=Number($('cQty').value);
+    if(!$('cDate').value||!Number.isInteger(q)||q<1)return alert('Informe a data e uma quantidade inteira maior que zero.');
+    const queue=fifoLots(s);
+    const total=queue.reduce((a,x)=>a+x.qty,0);
+    if(q>total)return alert(`Saldo insuficiente em ${s}. Disponível total seguindo FIFO: ${total} BAG(s).`);
+
+    let remaining=q;
+    const movements=[];
+    const noteBase=`Turno: ${$('cShift').value}${$('cNote').value.trim()?' — '+$('cNote').value.trim():''}`;
+    for(const x of queue){
+      if(remaining<=0) break;
+      const take=Math.min(remaining,x.qty);
+      movements.push({date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:x.lot,qty:take,responsible:$('cResponsible').value.trim(),note:`FIFO automático — ${noteBase}`});
+      remaining-=take;
+    }
+    await addMovements(movements);
+    e.target.reset();setToday('cDate');syncConsumption();renderFIFO();
+    alert(`Consumo de ${q} BAG(s) registrado automaticamente pela regra FIFO.\n\n${movements.map(m=>`${m.lot}: ${m.qty} BAG(s)`).join('\n')}`);
   }catch(err){alert('Erro ao registrar consumo: '+friendlyError(err));}
 });
 
