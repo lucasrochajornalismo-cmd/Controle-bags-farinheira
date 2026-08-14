@@ -111,8 +111,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <button class="active" data-page="dashboard">📊 Dashboard</button>
 <button data-page="farinheira">🌾 Farinheira</button>
 <button data-page="colorifico">🎨 Colorífico</button>
-<button data-page="docas">🚚 Estoque Docas</button>
-<button data-page="estoque">📦 Estoque</button>
+<button data-page="docas">🚚 Docas</button>
+<button data-page="estoque">📦 Entrada</button>
 <button data-page="consumo">🔄 Consumo</button>
 <button data-page="consumoFar">📈 Consumo mês · Farinheira</button>
 <button data-page="consumoCol">📈 Consumo mês · Colorífico</button>
@@ -194,7 +194,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </section>
 
 <section id="docas" class="page">
-<div class="panel"><h2>🚚 Estoque Docas — lançamento manual diário</h2>
+<div class="panel"><h2>🚚 Docas — lançamento manual diário</h2>
 <div class="info">O estoque das docas é um controle separado do estoque principal. O lançamento é manual e diário e <strong>não altera</strong> o saldo do Estoque. O sistema mantém o histórico de todos os lançamentos realizados.</div>
 <form id="dockForm"><div class="form-grid">
 <div class="field"><label>Data *</label><input type="date" id="dDate" required></div>
@@ -661,6 +661,8 @@ function updateAll(){
   renderMonthlyConsumption('Colorífico');
   renderLossHistory();
   renderFIFO();
+
+ renderDockCards();
 }
 
 function friendlyError(err){
@@ -740,6 +742,15 @@ async function deleteDock(id){
   if(!confirm(`Apagar este lançamento das docas?\n\n${fmt(m.date)} — ${m.sector} — ${m.qty} BAG(s)`))return;
   try{await removeDock(id);alert('Lançamento das docas apagado com sucesso.');}
   catch(e){alert('Erro ao apagar: '+friendlyError(e));}
+}
+
+function renderDockCards(){
+ const far=docks.records.filter(x=>x.sector==='Farinheira').reduce((a,x)=>a+Number(x.qty||0),0);
+ const col=docks.records.filter(x=>x.sector==='Colorífico').reduce((a,x)=>a+Number(x.qty||0),0);
+ const t=today();
+ const td=docks.records.filter(x=>String(x.date).slice(0,10)===t).reduce((a,x)=>a+Number(x.qty||0),0);
+ const f=$('dockFarTotal'),c=$('dockColTotal'),g=$('dockGrandTotal'),d=$('dockTodayTotal');
+ if(f)f.textContent=far;if(c)c.textContent=col;if(g)g.textContent=far+col;if(d)d.textContent=td;
 }
 
 function exportDockCSV(){
