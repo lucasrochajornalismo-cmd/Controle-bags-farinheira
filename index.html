@@ -51,7 +51,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
 .fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
-.hint{font-size:11px;color:#657482;margin-top:4px}
+.hint{font-size:11px;color:#657482;margin-top:4px}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#f8fafc}.compare-card.today-card{border:2px solid var(--primary)}.compare-title{font-weight:800;font-size:16px;margin-bottom:12px}.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px}.metric span{display:block;font-size:11px;color:var(--muted)}.metric strong{display:block;font-size:20px;margin-top:4px}@media(max-width:700px){.compare-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr 1fr}}
 </style>
 <style>
 /* Área de usuário compacta para GitHub Pages */
@@ -99,12 +99,17 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="container">
 <nav id="nav">
 <button class="active" data-page="dashboard">📊 Dashboard</button>
+<button data-page="farinheira">🌾 Farinheira</button>
+<button data-page="colorifico">🎨 Colorífico</button>
 <button data-page="docas">🚚 Estoque Docas</button>
 <button data-page="estoque">📦 Estoque</button>
 <button data-page="consumo">🔄 Consumo</button>
+<button data-page="consumoFar">📈 Consumo mês · Farinheira</button>
+<button data-page="consumoCol">📈 Consumo mês · Colorífico</button>
 <button data-page="loteProduto">🏷️ Lote do Produto</button>
 <button data-page="rastreio">🔎 Rastreabilidade</button>
 <button data-page="fifo">📦 FIFO — Ordem de Consumo</button>
+<button data-page="perdas">⚠️ Perdas de BAGS</button>
 <button data-page="relatorios">📋 Relatórios</button>
 <button data-page="backup">💾 Backup</button>
 </nav>
@@ -113,8 +118,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="cards">
 <div class="card"><div class="label">Farinheira · 1437</div><div id="kFar" class="value green">0</div></div>
 <div class="card"><div class="label">Colorífico · 1436</div><div id="kCol" class="value yellow">0</div></div>
-<div class="card"><div class="label">Consumo no mês · Farinheira</div><div id="kConsFar" class="value red">0</div></div>
-<div class="card"><div class="label">Consumo no mês · Colorífico</div><div id="kConsCol" class="value red">0</div></div>
+<div class="card"><div class="label">Consumo do dia · Farinheira</div><div id="kConsFar" class="value red">0</div></div>
+<div class="card"><div class="label">Consumo do dia · Colorífico</div><div id="kConsCol" class="value red">0</div></div>
 </div>
 <div class="grid">
 <div class="panel"><h2>Posição atual</h2><div class="kpi">
@@ -148,6 +153,34 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div>
 <div class="table-wrap"><table><thead><tr><th>Setor</th><th>Código</th><th>Tipo de BAG</th><th>Lote</th><th>Entrada</th><th>Consumido</th><th>Saldo</th></tr></thead><tbody id="stockBody"></tbody></table></div>
 </div>
+</section>
+
+<section id="farinheira" class="page">
+<div class="panel"><h2>🌾 Farinheira — comparação do dia anterior × atual</h2>
+<div class="info">Histórico do dia anterior e do dia atual para comparação. O saldo considera entradas, consumos e perdas.</div>
+<div id="farCompare"></div></div>
+<div class="panel"><h2>📋 Movimentações dos dois dias</h2><div id="farHistory"></div></div>
+</section>
+
+<section id="colorifico" class="page">
+<div class="panel"><h2>🎨 Colorífico — comparação do dia anterior × atual</h2>
+<div class="info">Histórico do dia anterior e do dia atual para comparação. O saldo considera entradas, consumos e perdas.</div>
+<div id="colCompare"></div></div>
+<div class="panel"><h2>📋 Movimentações dos dois dias</h2><div id="colHistory"></div></div>
+</section>
+
+<section id="consumoFar" class="page">
+<div class="panel"><h2>📈 Consumo do mês — Farinheira</h2>
+<div id="farMonthSummary"></div>
+<div class="toolbar"><input type="month" id="farMonth" onchange="renderMonthlyConsumption('Farinheira')"><button class="btn light" type="button" onclick="exportMonthlyConsumption('Farinheira')">Exportar CSV</button></div>
+<div id="farMonthTable"></div></div>
+</section>
+
+<section id="consumoCol" class="page">
+<div class="panel"><h2>📈 Consumo do mês — Colorífico</h2>
+<div id="colMonthSummary"></div>
+<div class="toolbar"><input type="month" id="colMonth" onchange="renderMonthlyConsumption('Colorífico')"><button class="btn light" type="button" onclick="exportMonthlyConsumption('Colorífico')">Exportar CSV</button></div>
+<div id="colMonthTable"></div></div>
 </section>
 
 <section id="docas" class="page">
@@ -220,10 +253,29 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div>
 </section>
 
+<section id="perdas" class="page">
+<div class="panel"><h2>⚠️ Registrar perda / descarte de BAG</h2>
+<div class="alert">Use quando um Big Bag rasgar, for danificado ou precisar ser descartado. A perda reduz automaticamente o estoque do lote e fica registrada para consulta.</div>
+<form id="lossForm"><div class="form-grid">
+<div class="field"><label>Data *</label><input type="date" id="lossDate" required></div>
+<div class="field"><label>Setor *</label><select id="lossSector" onchange="syncLossType()"><option>Farinheira</option><option>Colorífico</option></select></div>
+<div class="field"><label>Quantidade de BAGS perdidos *</label><input type="number" id="lossQty" min="1" step="1" required></div>
+<div class="field"><label>Tipo de BAG</label><div id="lossType" class="fixed">Big Bag 1.300 kg</div></div>
+<div class="field"><label>Código</label><div id="lossCode" class="fixed">1437</div></div>
+<div class="field"><label>Lote do Big Bag *</label><input id="lossLot" placeholder="Informe o lote que sofreu a perda" required></div>
+<div class="field"><label>Motivo da perda *</label><select id="lossReason" required><option value="">Selecione...</option><option>BAG rasgado</option><option>BAG danificado</option><option>Contaminação</option><option>Umidade</option><option>Queda / acidente</option><option>Outro</option></select></div>
+<div class="field"><label>Responsável</label><input id="lossResponsible"></div>
+<div class="field full"><label>Observação</label><textarea id="lossNote" placeholder="Descreva o ocorrido, material perdido, causa, área, equipamento etc."></textarea></div>
+</div><div class="actions"><button class="btn danger" type="submit">Registrar perda</button><button class="btn light" type="reset">Limpar</button></div></form></div>
+<div class="panel"><h2>📋 Histórico de perdas</h2>
+<div class="toolbar"><input type="date" id="lossStart"><input type="date" id="lossEnd"><select id="lossFilterSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><button class="btn primary" type="button" onclick="renderLossHistory()">Filtrar</button><button class="btn light" type="button" onclick="exportLossCSV()">Exportar CSV</button></div>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Setor</th><th>Lote</th><th>Qtd.</th><th>Motivo</th><th>Responsável</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="lossBody"></tbody></table></div></div>
+</section>
+
 <section id="relatorios" class="page">
 <div class="panel"><h2>📋 Histórico de movimentações</h2>
 <div class="info">Se uma entrada ou saída/consumo for lançada incorretamente, use <strong>Apagar</strong>. O sistema recalcula automaticamente o saldo, o consumo do mês e a rastreabilidade.</div>
-<div class="toolbar"><input type="date" id="rStart"><input type="date" id="rEnd"><select id="rSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><select id="rKind"><option value="">Todos</option><option value="ENTRADA">Entradas</option><option value="CONSUMO">Consumos</option></select><button class="btn primary" type="button" onclick="renderReport()">Filtrar</button><button class="btn light" type="button" onclick="exportCSV()">Exportar CSV</button></div>
+<div class="toolbar"><input type="date" id="rStart"><input type="date" id="rEnd"><select id="rSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><select id="rKind"><option value="">Todos</option><option value="ENTRADA">Entradas</option><option value="CONSUMO">Consumos</option><option value="PERDA">Perdas</option></select><button class="btn primary" type="button" onclick="renderReport()">Filtrar</button><button class="btn light" type="button" onclick="exportCSV()">Exportar CSV</button></div>
 <div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Setor</th><th>Código</th><th>Tipo</th><th>Lote</th><th>Qtd.</th><th>Responsável</th><th>Obs.</th><th>Ações</th></tr></thead><tbody id="reportBody"></tbody></table></div>
 </div>
 </section>
@@ -238,7 +290,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </tbody></table></div>
 </section>
 
-<footer>Controle de BAGS — versão compartilhada • Estoque inicial: Farinheira 47 | Colorífico 14 • Docas com lançamento manual diário</footer>
+<footer>Controle de BAGS — versão compartilhada • Comparação diária • Consumo diário/mensal • Controle de perdas • Docas com lançamento manual diário</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -374,20 +426,16 @@ function fifoLots(sec){
   const map={};
   db.movements.filter(m=>m.sector===sec && m.lot).forEach(m=>{
     const lot=String(m.lot).trim();
-    if(!map[lot]) map[lot]={lot,firstDate:String(m.date),firstId:Number(m.id)||0,received:0,consumed:0};
-    const x=map[lot];
-    const d=String(m.date);
-    const id=Number(m.id)||0;
+    if(!map[lot]) map[lot]={lot,firstDate:String(m.date),firstId:Number(m.id)||0,received:0,consumed:0,lost:0};
+    const x=map[lot], d=String(m.date), id=Number(m.id)||0;
     if(d<x.firstDate || (d===x.firstDate && id<x.firstId)){x.firstDate=d;x.firstId=id;}
     if(m.kind==='ENTRADA') x.received+=Number(m.qty)||0;
     if(m.kind==='CONSUMO') x.consumed+=Number(m.qty)||0;
+    if(m.kind==='PERDA') x.lost+=Number(m.qty)||0;
   });
-  return Object.values(map)
-    .map(x=>({...x,qty:x.received-x.consumed}))
-    .filter(x=>x.qty>0)
-    .sort((a,b)=>String(a.firstDate).localeCompare(String(b.firstDate)) || a.firstId-b.firstId || a.lot.localeCompare(b.lot));
+  return Object.values(map).map(x=>({...x,qty:x.received-x.consumed-x.lost})).filter(x=>x.qty>0)
+    .sort((a,b)=>String(a.firstDate).localeCompare(String(b.firstDate))||a.firstId-b.firstId||a.lot.localeCompare(b.lot));
 }
-
 function fifoAll(){
   const out=[];
   for(const sec of ['Farinheira','Colorífico']){
@@ -423,9 +471,9 @@ function updateDashboard(){
   $('kFar').textContent=f; $('kCol').textContent=c;
   $('dFar').textContent=f; $('dCol').textContent=c; $('dTotal').textContent=f+c;
 
-  const mo=today().slice(0,7);
-  $('kConsFar').textContent=db.movements.filter(m=>m.kind==='CONSUMO'&&m.sector==='Farinheira'&&String(m.date).startsWith(mo)).reduce((a,m)=>a+Number(m.qty),0);
-  $('kConsCol').textContent=db.movements.filter(m=>m.kind==='CONSUMO'&&m.sector==='Colorífico'&&String(m.date).startsWith(mo)).reduce((a,m)=>a+Number(m.qty),0);
+  const td=today();
+  $('kConsFar').textContent=db.movements.filter(m=>m.kind==='CONSUMO'&&m.sector==='Farinheira'&&String(m.date).slice(0,10)===td).reduce((a,m)=>a+Number(m.qty),0);
+  $('kConsCol').textContent=db.movements.filter(m=>m.kind==='CONSUMO'&&m.sector==='Colorífico'&&String(m.date).slice(0,10)===td).reduce((a,m)=>a+Number(m.qty),0);
 
   const arr=[...db.movements].sort((a,b)=>String(b.date+b.id).localeCompare(String(a.date+a.id))).slice(0,6);
   $('recent').innerHTML=arr.length ? arr.map(m=>`
@@ -443,6 +491,43 @@ function updateDashboard(){
   $('lotSummary').innerHTML=html||'<div class="empty">Nenhum lote registrado.</div>';
 }
 
+
+function previousDate(){const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function dayMetrics(sec,date){
+ const ms=db.movements.filter(m=>m.sector===sec&&String(m.date).slice(0,10)===date);
+ return {entradas:ms.filter(m=>m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0),consumos:ms.filter(m=>m.kind==='CONSUMO').reduce((a,m)=>a+Number(m.qty),0),perdas:ms.filter(m=>m.kind==='PERDA').reduce((a,m)=>a+Number(m.qty),0),saldo:totalStockAtDate(sec,date)};
+}
+function totalStockAtDate(sec,date){return db.movements.filter(m=>m.sector===sec&&String(m.date).slice(0,10)<=date).reduce((a,m)=>a+(m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty)),0);}
+function renderSectorComparison(sec){
+ const prev=previousDate(),cur=today(),p=sec==='Farinheira'?'far':'col',a=dayMetrics(sec,prev),b=dayMetrics(sec,cur),diff=b.saldo-a.saldo;
+ $(`${p}Compare`).innerHTML=`<div class="compare-grid"><div class="compare-card"><div class="compare-title">📅 Dia anterior — ${fmt(prev)}</div><div class="metric-row"><div class="metric"><span>Entradas</span><strong>${a.entradas}</strong></div><div class="metric"><span>Consumo</span><strong>${a.consumos}</strong></div><div class="metric"><span>Perdas</span><strong>${a.perdas}</strong></div></div><div class="kpi" style="margin-top:10px"><div><span>Saldo ao final do dia</span><strong>${a.saldo} BAGS</strong></div></div></div><div class="compare-card today-card"><div class="compare-title">📅 Hoje — ${fmt(cur)}</div><div class="metric-row"><div class="metric"><span>Entradas</span><strong>${b.entradas}</strong></div><div class="metric"><span>Consumo</span><strong>${b.consumos}</strong></div><div class="metric"><span>Perdas</span><strong>${b.perdas}</strong></div></div><div class="kpi" style="margin-top:10px"><div><span>Saldo atual</span><strong>${b.saldo} BAGS</strong></div><div><span>Variação do saldo</span><strong>${diff>0?'+':''}${diff} BAGS</strong></div></div></div></div>`;
+ const ms=db.movements.filter(m=>m.sector===sec&&(String(m.date).slice(0,10)===prev||String(m.date).slice(0,10)===cur)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+ $(`${p}History`).innerHTML=ms.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Lote</th><th>Quantidade</th><th>Responsável</th><th>Observação</th></tr></thead><tbody>${ms.map(m=>`<tr><td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${m.kind==='PERDA'?'PERDA':m.kind}</span></td><td>${esc(m.lot)}</td><td>${m.qty}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma movimentação nos dois dias.</div>';
+}
+function renderSectorPages(){renderSectorComparison('Farinheira');renderSectorComparison('Colorífico');}
+function monthDays(sec,month){const map={};db.movements.filter(m=>m.sector===sec&&m.kind==='CONSUMO'&&String(m.date).startsWith(month)).forEach(m=>{const d=String(m.date).slice(0,10);map[d]=(map[d]||0)+Number(m.qty);});return map;}
+function renderMonthlyConsumption(sec){
+ const id=sec==='Farinheira'?'far':'col',monthId=`${id}Month`,month=$(monthId).value||today().slice(0,7);$(monthId).value=month;
+ const days=monthDays(sec,month),total=Object.values(days).reduce((a,b)=>a+b,0),todayQty=month===today().slice(0,7)?(days[today()]||0):0,active=Object.keys(days).length,avg=active?total/active:0;
+ $(`${id}MonthSummary`).innerHTML=`<div class="cards"><div class="card"><div class="label">Consumo do dia</div><div class="value red">${todayQty}</div></div><div class="card"><div class="label">Total consumido no mês</div><div class="value red">${total}</div></div><div class="card"><div class="label">Dias com consumo</div><div class="value blue">${active}</div></div><div class="card"><div class="label">Média por dia com consumo</div><div class="value yellow">${avg.toFixed(1)}</div></div></div>`;
+ const rows=Object.entries(days).sort((a,b)=>b[0].localeCompare(a[0]));
+ $(`${id}MonthTable`).innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Consumo de BAGS</th></tr></thead><tbody>${rows.map(([d,q])=>`<tr><td>${fmt(d)}</td><td><strong>${q}</strong></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhum consumo registrado no mês selecionado.</div>';
+}
+function exportMonthlyConsumption(sec){
+ const id=sec==='Farinheira'?'far':'col',month=$(`${id}Month`).value||today().slice(0,7),days=monthDays(sec,month),rows=[['Data','Setor','Consumo de BAGS']];
+ Object.entries(days).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([d,q])=>rows.push([d,sec,q]));
+ if(rows.length===1)return alert('Nenhum consumo encontrado no mês selecionado.');
+ const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`consumo_${id}_${month}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+function syncLossType(){const sec=$('lossSector').value;$('lossType').textContent=CONFIG[sec].type;$('lossCode').textContent=CONFIG[sec].code;}
+function renderLossHistory(){
+ const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>m.kind==='PERDA'&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+ $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${m.qty}</strong></td><td>${esc(m.reason||'')}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhuma perda encontrada.</td></tr>';
+}
+function exportLossCSV(){
+ const rows=[['Data','Setor','Código','Tipo de BAG','Lote','Quantidade','Motivo','Responsável','Observação']];db.movements.filter(m=>m.kind==='PERDA').forEach(m=>rows.push([m.date,m.sector,m.code,m.type,m.lot,m.qty,m.reason,m.responsible,m.note]));
+ const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`perdas_bags_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
 function renderStock(){
   const s=$('stockSector').value;
   const q=($('stockLot').value||'').toLowerCase();
@@ -561,6 +646,11 @@ function updateAll(){
   renderTrace();
   renderDockHistory();
   renderProductLotHistory();
+  renderSectorPages();
+  renderMonthlyConsumption('Farinheira');
+  renderMonthlyConsumption('Colorífico');
+  renderLossHistory();
+  renderFIFO();
 }
 
 function friendlyError(err){
@@ -583,7 +673,7 @@ async function editMovement(id){
     return alert('Data, lote e quantidade são obrigatórios. A quantidade deve ser um número inteiro maior que zero.');
   }
   // Verifica o saldo resultante do lote, desconsiderando o próprio registro durante a edição.
-  if(m.kind==='CONSUMO'){
+  if(m.kind==='CONSUMO'||m.kind==='PERDA'){
     const base=db.movements.filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
       .reduce((a,x)=>a+(x.kind==='ENTRADA'?Number(x.qty):-Number(x.qty)),0);
     if(qty>base)return alert(`Saldo insuficiente no lote ${lot.trim()}. Disponível para esta edição: ${base} BAG(s).`);
@@ -659,7 +749,7 @@ function exportCSV(){
 }
 
 function downloadBackup(prefix='backup_rastreabilidade_bags'){
-  const backup={version:6,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
+  const backup={version:7,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
   const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download=`${prefix}_${today()}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -776,6 +866,19 @@ $('consumptionForm').addEventListener('submit',async e=>{
   }catch(err){alert('Erro ao registrar consumo: '+friendlyError(err));}
 });
 
+$('lossForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ try{
+  const sec=$('lossSector').value,lot=$('lossLot').value.trim(),q=Number($('lossQty').value);
+  if(!CONFIG[sec]||!$('lossDate').value||!lot||!Number.isInteger(q)||q<1||!$('lossReason').value)return alert('Informe data, setor, lote, quantidade e motivo.');
+  const item=fifoLots(sec).find(x=>String(x.lot).toLowerCase()===lot.toLowerCase());
+  if(!item)return alert(`O lote ${lot} não foi encontrado ou não possui saldo disponível em ${sec}.`);
+  if(q>item.qty)return alert(`Saldo insuficiente no lote ${item.lot}. Saldo disponível: ${item.qty} BAG(s).`);
+  const m={date:$('lossDate').value,kind:'PERDA',sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,lot:item.lot,qty:q,reason:$('lossReason').value,responsible:$('lossResponsible').value.trim(),note:$('lossNote').value.trim()};
+  await addMovement(m);e.target.reset();setToday('lossDate');syncLossType();alert(`Perda de ${q} BAG(s) registrada no lote ${item.lot}. O estoque foi reduzido.`);
+ }catch(err){alert('Erro ao registrar perda: '+friendlyError(err));}
+});
+
 $('productLotForm').addEventListener('submit',async e=>{
   e.preventDefault();
   try{
@@ -847,7 +950,11 @@ async function boot(){
   setToday('cDate');
   setToday('pDate');
   setToday('eDate');
+  setToday('lossDate');
+  $('farMonth').value=today().slice(0,7);
+  $('colMonth').value=today().slice(0,7);
   syncDockType();
+  syncLossType();
   syncEntryType();
   updateAll();
 
