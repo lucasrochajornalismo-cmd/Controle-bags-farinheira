@@ -1,0 +1,13 @@
+CONTROLE DE BAGS — INSTALAÇÃO
+
+1. Envie TODOS os arquivos desta pasta para a raiz do repositório no GitHub.
+2. Mantenha exatamente os mesmos nomes dos arquivos.
+3. Aguarde a atualização do GitHub Pages e abra o endereço do aplicativo.
+4. No computador (Chrome ou Edge), clique em “Instalar app”.
+5. No Android, use “Instalar app” ou “Adicionar à tela inicial”.
+6. No iPhone/iPad, abra no Safari, toque em Compartilhar e em “Adicionar à Tela de Início”.
+
+IMPORTANTE
+- A instalação exige que o site seja publicado por HTTPS, como no GitHub Pages.
+- A estrutura e a capa abrem após o primeiro carregamento mesmo se a conexão cair.
+- Login, sincronização e dados compartilhados do Supabase precisam de internet.

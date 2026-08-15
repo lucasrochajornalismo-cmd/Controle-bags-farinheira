@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="app-version" content="2026.08.15-word-flotamil-landscape-72">
+<meta name="app-version" content="2026.08.15-pwa-mobile">
+<meta name="theme-color" content="#0b3d66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Controle BAGS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Rastreabilidade de BAGS</title>
 <style>
 :root{--bg:#f3f6fa;--card:#fff;--text:#172334;--muted:#64748b;--primary:#1769aa;--primary2:#082f52;--green:#16834b;--red:#c83d3d;--yellow:#b7791f;--border:#dce5ed;--shadow:0 8px 26px rgba(15,42,66,.08)}
@@ -53,9 +60,13 @@ th{background:#f5f8fa;font-size:12px;white-space:nowrap}
 .empty{text-align:center;color:var(--muted);padding:25px}.small{font-size:12px;color:var(--muted)}
 .stock-ok{color:var(--green);font-weight:800}.stock-low{color:var(--red);font-weight:800}
 .lot-card{padding:11px;background:#f7f9fb;border-radius:8px;margin-bottom:8px}.lot-card strong{display:block}
-#loginScreen{position:fixed;inset:0;background:#f5f7fb;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
-.login-box{background:#fff;border-radius:16px;box-shadow:0 10px 35px rgba(0,0,0,.12);padding:28px;max-width:460px;width:100%}
+#loginScreen{position:fixed;inset:0;background:#17212b;display:grid;grid-template-columns:minmax(360px,1.25fr) minmax(380px,.75fr);z-index:9999;overflow:auto}
+.cover-art{min-height:100%;background:#211a15 url('capa-farinheira-flotamil-colorifico.jpg') center/cover no-repeat;position:relative}
+.cover-art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 68%,rgba(23,33,43,.3))}
+.login-side{display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(145deg,#082f52,#1769aa)}
+.login-box{background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:32px;max-width:460px;width:100%}
 .login-box h2{margin-top:0;font-size:28px}.login-box input{padding:13px;margin:6px 0}
+.login-logo{display:none;width:112px;height:112px;object-fit:cover;border-radius:50%;margin:0 auto 16px;box-shadow:0 8px 25px rgba(0,0,0,.25);border:3px solid #fff}
 #userBar{position:fixed;right:18px;top:78px;z-index:1000;background:#fff;padding:6px 10px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:12px}
 #userBar button{margin-left:8px}
 #loginMsg{min-height:18px;margin-bottom:0}
@@ -63,6 +74,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards,.dashboard-cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
 @media(max-width:560px){.sent-fields{grid-template-columns:1fr}}
+@media(max-width:780px){
+  #loginScreen{display:flex;align-items:flex-end;justify-content:center;padding:24px 16px;background:#211a15 url('capa-farinheira-flotamil-colorifico.jpg') center top/cover no-repeat}
+  #loginScreen:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 30%,rgba(8,47,82,.88) 77%,#082f52)}
+  .cover-art{display:none}.login-side{position:relative;width:100%;padding:0;background:none}.login-box{padding:22px;max-width:430px}.login-box h2{font-size:23px}.login-logo{display:block}
+}
 .fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
 .hint{font-size:11px;color:#657482;margin-top:4px}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#f8fafc}.compare-card.today-card{border:2px solid var(--primary)}.compare-title{font-weight:800;font-size:16px;margin-bottom:12px}.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px}.metric span{display:block;font-size:11px;color:var(--muted)}.metric strong{display:block;font-size:20px;margin-top:4px}@media(max-width:700px){.compare-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr 1fr}}
 .flotamil-box{grid-column:1/-1;display:none;background:#eef8f2;border:1px solid #bfdfca;border-radius:14px;padding:16px}.pallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}.total-kg{margin-top:14px;background:linear-gradient(135deg,#11683d,#16834b);color:#fff;border-radius:13px;padding:16px}.total-kg .label{color:#dff5e9}.total-kg .value{font-size:34px}
@@ -84,15 +100,19 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <body>
 
 <div id="loginScreen">
-  <div class="login-box">
-    <h2>🔐 Controle de BAGS</h2>
-    <p>Entre para acessar o estoque compartilhado.</p>
-    <form id="loginForm">
-      <input id="loginEmail" type="email" placeholder="E-mail" required>
-      <input id="loginPassword" type="password" placeholder="Senha" required>
-      <button id="loginButton" class="btn primary" style="width:100%;margin-top:10px" type="submit">Entrar</button>
-    </form>
-    <p id="loginMsg" class="small"></p>
+  <div class="cover-art" role="img" aria-label="Farinheira, Flotamil e Colorífico"></div>
+  <div class="login-side">
+    <div class="login-box">
+      <img class="login-logo" src="icone-192.png" alt="Símbolo Farinheira Flotamil Colorífico">
+      <h2>🔐 Controle de BAGS</h2>
+      <p>Entre para acessar o estoque compartilhado.</p>
+      <form id="loginForm">
+        <input id="loginEmail" type="email" placeholder="E-mail" autocomplete="username" required>
+        <input id="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" required>
+        <button id="loginButton" class="btn primary" style="width:100%;margin-top:10px" type="submit">Entrar</button>
+      </form>
+      <p id="loginMsg" class="small"></p>
+    </div>
   </div>
 </div>
 
@@ -108,6 +128,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 
 <div id="userBar" style="display:none">
   Usuário: <strong id="userEmail"></strong>
+  <button id="installAppButton" class="btn primary" type="button" onclick="installApp()">Instalar app</button>
   <button class="btn light" type="button" onclick="logout()">Sair</button>
 </div>
 
@@ -292,7 +313,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </tbody></table></div>
 </section>
 
-<footer>Controle de BAGS — Flotamil com registro, baixa e documento Word automático para impressão</footer>
+<footer>Controle de BAGS — Flotamil com registro, baixa e impressão direta automática</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -311,6 +332,7 @@ const CONFIG = {
 let currentUser = null;
 let db = {movements:[],productLots:[]};
 let docks = {records:[]};
+let deferredInstallPrompt = null;
 
 const $ = id => document.getElementById(id);
 
@@ -562,14 +584,16 @@ async function registerFlotamilShipment(){
   if(!$('lossDate').value||!Number.isInteger(qty)||qty<=0)return alert('Informe a data e a quantidade enviada em quilos inteiros.');
   if(qty>available)return alert(`Saldo insuficiente. Disponível para envio: ${Math.max(0,available).toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);
   const userNote=$('lossNote').value.trim(),m={date:$('lossDate').value,kind:'CONSUMO',sector:'Farinha para o Flotamil',type:'Farinha',code:'691',lot:`ENVIO-${$('lossDate').value.replaceAll('-','')}`,qty,responsible:$('lossResponsible').value.trim(),note:`BAIXA DE ENVIO | Produto: Farinha — código 691 | Quantidade enviada: ${qty.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg${userNote?' — '+userNote:''}`};
-  await addMovement(m);generateFlotamilWord(qty);$('flotamilSentKg').value='';$('flotamilSent').checked=false;renderFlotamilBalance();alert(`Baixa realizada com sucesso. ${qty.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg enviados. O documento Word para impressão foi gerado automaticamente. Saldo restante: ${Math.max(0,flotamilBalance()).toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);
+  await addMovement(m);$('flotamilSentKg').value='';$('flotamilSent').checked=false;renderFlotamilBalance();alert(`Baixa realizada com sucesso. ${qty.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg enviados. A tela de impressão será aberta agora. Saldo restante: ${Math.max(0,flotamilBalance()).toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);printFlotamilLabel(qty);
  }catch(err){alert('Erro ao registrar a baixa: '+friendlyError(err));}
 }
-function generateFlotamilWord(qty){
+function printFlotamilLabel(qty){
  const printedQty=Number(qty).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});
- const wordHtml=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>FARINHA PARA O FLOTAMIL</title><style>@page WordSection1{size:841.9pt 595.3pt;margin:0;mso-page-orientation:landscape}div.WordSection1{page:WordSection1}html,body{margin:0;padding:0}table{width:841.9pt;height:595.3pt;border-collapse:collapse}td{text-align:center;vertical-align:middle;font-family:Arial,sans-serif;font-size:72pt;font-weight:700;line-height:1.15;color:#000}.line,.quantity{font-size:72pt;margin-top:20pt}</style></head><body><div class="WordSection1"><table role="presentation"><tr><td><div>FARINHA PARA O FLOTAMIL</div><div class="line">COD. 691</div><div class="quantity">${printedQty} KG</div></td></tr></table></div></body></html>`;
- const blob=new Blob(['\ufeff',wordHtml],{type:'application/msword;charset=utf-8'}),link=document.createElement('a');
- link.href=URL.createObjectURL(blob);link.download=`FARINHA_PARA_O_FLOTAMIL_${today().replaceAll('-','')}.doc`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1500);
+ const printHtml=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>FARINHA PARA O FLOTAMIL</title><style>@page{size:A4 landscape;margin:0}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;padding:0;background:#fff}.sheet{width:297mm;height:210mm;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}.content{font-family:Arial,sans-serif;font-size:72pt;font-weight:700;line-height:1.15;color:#000;text-transform:uppercase}.line{margin-top:20pt}@media print{html,body{width:297mm;height:210mm}.sheet{page-break-after:avoid}}</style></head><body><main class="sheet"><div class="content"><div>FARINHA PARA O FLOTAMIL</div><div class="line">COD. 691</div><div class="line">${printedQty} KG</div></div></main></body></html>`;
+ const frame=document.createElement('iframe');frame.setAttribute('title','Impressão Farinha para o Flotamil');frame.style.cssText='position:fixed;width:1px;height:1px;border:0;right:0;bottom:0;opacity:0;pointer-events:none';document.body.appendChild(frame);
+ const doc=frame.contentWindow.document;doc.open();doc.write(printHtml);doc.close();
+ frame.contentWindow.onafterprint=()=>frame.remove();
+ setTimeout(()=>{try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){frame.remove();alert('Não foi possível abrir a impressão automaticamente. Verifique se o navegador permite janelas de impressão.');}setTimeout(()=>{if(frame.isConnected)frame.remove();},60000);},350);
 }
 function renderLossHistory(){
  const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>(m.kind==='PERDA'||m.sector==='Farinha para o Flotamil')&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
@@ -995,6 +1019,21 @@ async function logout(){
   catch(e){alert('Erro ao sair: '+friendlyError(e));}
 }
 
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();deferredInstallPrompt=event;
+  const button=$('installAppButton');if(button)button.style.display='inline-block';
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;const button=$('installAppButton');if(button)button.style.display='none';
+});
+async function installApp(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;
+  }
+  const isiPhone=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  alert(isiPhone?'No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.':'No menu do navegador, escolha Instalar aplicativo ou Adicionar à tela inicial.');
+}
+
 let loadingCloud=false;
 let lastLoadedUserId=null;
 
@@ -1035,6 +1074,7 @@ async function boot(){
   syncLossType();
   syncEntryType();
   updateAll();
+  if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){$('installAppButton').style.display='none';}
 
   try{
     const {data,error}=await sb.auth.getSession();
@@ -1054,6 +1094,7 @@ async function boot(){
 
 $('clock').textContent=new Date().toLocaleString('pt-BR');
 setInterval(()=>$('clock').textContent=new Date().toLocaleString('pt-BR'),1000);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(error=>console.warn('Service worker:',error)));}
 boot();
 </script>
 </body>
