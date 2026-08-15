@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="app-version" content="2026.08.15-word-flotamil-landscape-72">
 <title>Rastreabilidade de BAGS</title>
 <style>
 :root{--bg:#f3f6fa;--card:#fff;--text:#172334;--muted:#64748b;--primary:#1769aa;--primary2:#082f52;--green:#16834b;--red:#c83d3d;--yellow:#b7791f;--border:#dce5ed;--shadow:0 8px 26px rgba(15,42,66,.08)}
@@ -61,9 +62,11 @@ th{background:#f5f8fa;font-size:12px;white-space:nowrap}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards,.dashboard-cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
+@media(max-width:560px){.sent-fields{grid-template-columns:1fr}}
 .fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
 .hint{font-size:11px;color:#657482;margin-top:4px}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#f8fafc}.compare-card.today-card{border:2px solid var(--primary)}.compare-title{font-weight:800;font-size:16px;margin-bottom:12px}.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px}.metric span{display:block;font-size:11px;color:var(--muted)}.metric strong{display:block;font-size:20px;margin-top:4px}@media(max-width:700px){.compare-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr 1fr}}
 .flotamil-box{grid-column:1/-1;display:none;background:#eef8f2;border:1px solid #bfdfca;border-radius:14px;padding:16px}.pallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}.total-kg{margin-top:14px;background:linear-gradient(135deg,#11683d,#16834b);color:#fff;border-radius:13px;padding:16px}.total-kg .label{color:#dff5e9}.total-kg .value{font-size:34px}
+.send-check{display:flex;align-items:center;gap:10px;margin-top:16px;padding:13px;background:#fff;border:1px solid #bfdfca;border-radius:10px;font-weight:800}.send-check input{width:20px;height:20px;accent-color:var(--green)}.sent-fields{display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 </style>
 <style>
 /* Área de usuário compacta para GitHub Pages */
@@ -262,7 +265,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="field bag-loss-only"><label>Código</label><div id="lossCode" class="fixed">1437</div></div>
 <div class="field bag-loss-only"><label>Lote do Big Bag *</label><input id="lossLot" placeholder="Informe o lote que sofreu a perda" required></div>
 <div class="field bag-loss-only"><label>Motivo da perda *</label><select id="lossReason" required><option value="">Selecione...</option><option>BAG rasgado</option><option>BAG danificado</option><option>Contaminação</option><option>Umidade</option><option>Queda / acidente</option><option>Outro</option></select></div>
-<div id="flotamilFields" class="flotamil-box"><div class="field"><label>Quantidade de paletes *</label><input type="number" id="palletCount" min="1" max="100" step="1" value="1" oninput="renderPalletInputs()"></div><div id="palletWeights" class="pallet-grid"></div><div class="total-kg"><div class="label">Total de farinha a ser enviado</div><div class="value"><span id="flotamilTotalKg">0</span> kg</div></div></div>
+<div id="flotamilFields" class="flotamil-box"><h3 style="margin:0 0 12px">1. Registrar farinha disponível</h3><div class="info">Para compatibilidade com o banco atual, informe os pesos em quilos inteiros, sem vírgulas ou casas decimais.</div><div class="field"><label>Quantidade de paletes *</label><input type="number" id="palletCount" min="1" max="100" step="1" value="1" oninput="renderPalletInputs()"></div><div id="palletWeights" class="pallet-grid"></div><div class="total-kg"><div class="label">Total deste registro</div><div class="value"><span id="flotamilTotalKg">0</span> kg</div></div><div class="total-kg" style="background:linear-gradient(135deg,#0b3d66,#1769aa)"><div class="label">Saldo disponível para envio</div><div class="value"><span id="flotamilBalanceKg">0</span> kg</div></div><hr style="border:0;border-top:1px solid #bfdfca;margin:20px 0"><h3 style="margin:0 0 12px">2. Dar baixa após o envio</h3><div id="flotamilSentFields" class="sent-fields" style="display:grid"><div class="field"><label>Produto *</label><select id="flotamilProduct"><option value="691">Farinha — código 691</option></select></div><div class="field"><label>Quantidade enviada em kg *</label><input type="number" id="flotamilSentKg" min="1" step="1" placeholder="Informe o peso inteiro enviado"></div></div><label class="send-check"><input type="checkbox" id="flotamilSent"> Confirmo que o produto foi enviado ao Flotamil</label><div class="actions"><button class="btn success" type="button" onclick="registerFlotamilShipment()">Dar baixa do envio</button></div></div>
 <div class="field"><label>Responsável</label><input id="lossResponsible"></div>
 <div class="field full"><label>Observação</label><textarea id="lossNote" placeholder="Descreva o ocorrido, material perdido, causa, área, equipamento etc."></textarea></div>
 </div><div class="actions"><button id="lossSubmitButton" class="btn danger" type="submit">Registrar perda</button><button class="btn light" type="reset">Limpar</button></div></form></div>
@@ -289,7 +292,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </tbody></table></div>
 </section>
 
-<footer>Controle de BAGS — versão compartilhada • Comparação diária • Consumo diário/mensal • Controle de perdas • Docas com lançamento manual diário</footer>
+<footer>Controle de BAGS — Flotamil com registro, baixa e documento Word automático para impressão</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -479,7 +482,7 @@ function updateDashboard(){
 
   const arr=[...db.movements].sort((a,b)=>String(b.date+b.id).localeCompare(String(a.date+a.id))).slice(0,6);
   $('recent').innerHTML=arr.length ? arr.map(m=>`
-    <div class="kpi"><div><span>${fmt(m.date)} — ${m.sector==='Farinha para o Flotamil'?'Envio ao Flotamil':m.kind==='ENTRADA'?'Entrada':m.kind==='PERDA'?'Perda / descarte':'Consumo'}<br>
+    <div class="kpi"><div><span>${fmt(m.date)} — ${m.sector==='Farinha para o Flotamil'?(m.kind==='ENTRADA'?'Farinha registrada':'Baixa enviada'):m.kind==='ENTRADA'?'Entrada':m.kind==='PERDA'?'Perda / descarte':'Consumo'}<br>
     <small>${esc(m.sector)} • ${esc(m.lot)} • ${esc(m.type)}</small></span><strong>${m.qty}</strong></div></div>
   `).join('') : '<div class="empty">Nenhuma movimentação.</div>';
 
@@ -528,25 +531,57 @@ function syncLossType(){
  $('lossSubmitButton').textContent=isFlotamil?'Registrar farinha para envio':'Registrar perda';
  $('lossSubmitButton').className=`btn ${isFlotamil?'success':'danger'}`;
  $('lossHelp').innerHTML=isFlotamil?'Informe quantos paletes de farinha existem no setor e o peso em kg de cada um. O total será calculado automaticamente para o envio ao Flotamil.':'Use quando um Big Bag rasgar, for danificado ou precisar ser descartado. A perda reduz automaticamente o estoque do lote e fica registrada para consulta.';
- if(isFlotamil){renderPalletInputs();return;}
+ if(isFlotamil){renderPalletInputs();renderFlotamilBalance();return;}
  $('lossType').textContent=CONFIG[sec].type;$('lossCode').textContent=CONFIG[sec].code;
 }
 function renderPalletInputs(){
  const count=Math.max(1,Math.min(100,Number($('palletCount').value)||1)),old=[...document.querySelectorAll('.pallet-weight')].map(x=>x.value);
  $('palletCount').value=count;
- $('palletWeights').innerHTML=Array.from({length:count},(_,i)=>`<div class="field"><label>Palete ${i+1} — peso em kg *</label><input class="pallet-weight" type="number" min="0.01" step="0.01" value="${esc(old[i]||'')}" placeholder="Ex.: 850" oninput="calculateFlotamilTotal()" required></div>`).join('');
+ $('palletWeights').innerHTML=Array.from({length:count},(_,i)=>`<div class="field"><label>Palete ${i+1} — peso em kg *</label><input class="pallet-weight" type="number" min="1" step="1" value="${esc(old[i]||'')}" placeholder="Ex.: 850" oninput="calculateFlotamilTotal()" required></div>`).join('');
  calculateFlotamilTotal();
 }
 function calculateFlotamilTotal(){
  const total=[...document.querySelectorAll('.pallet-weight')].reduce((sum,input)=>sum+(Number(input.value)||0),0);
  $('flotamilTotalKg').textContent=total.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});return total;
 }
+function flotamilBalance(){
+ return db.movements.filter(m=>m.sector==='Farinha para o Flotamil').reduce((sum,m)=>{
+  if(m.kind==='ENTRADA'||(m.kind==='PERDA'&&String(m.reason||'').includes('Aguardando')))return sum+Number(m.qty||0);
+  if(m.kind==='CONSUMO'||(m.kind==='PERDA'&&String(m.reason||'').includes('Enviado')))return sum-Number(m.qty||0);
+  return sum;
+ },0);
+}
+function renderFlotamilBalance(){
+ const el=$('flotamilBalanceKg');if(el)el.textContent=Math.max(0,flotamilBalance()).toLocaleString('pt-BR',{maximumFractionDigits:2});
+}
+async function registerFlotamilShipment(){
+ try{
+  if($('lossSector').value!=='Farinha para o Flotamil')return;
+  const qty=Number($('flotamilSentKg').value),available=flotamilBalance();
+  if(!$('flotamilSent').checked)return alert('Marque a confirmação de que o produto foi enviado ao Flotamil.');
+  if(!$('lossDate').value||!Number.isInteger(qty)||qty<=0)return alert('Informe a data e a quantidade enviada em quilos inteiros.');
+  if(qty>available)return alert(`Saldo insuficiente. Disponível para envio: ${Math.max(0,available).toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);
+  const userNote=$('lossNote').value.trim(),m={date:$('lossDate').value,kind:'CONSUMO',sector:'Farinha para o Flotamil',type:'Farinha',code:'691',lot:`ENVIO-${$('lossDate').value.replaceAll('-','')}`,qty,responsible:$('lossResponsible').value.trim(),note:`BAIXA DE ENVIO | Produto: Farinha — código 691 | Quantidade enviada: ${qty.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg${userNote?' — '+userNote:''}`};
+  await addMovement(m);generateFlotamilWord(qty);$('flotamilSentKg').value='';$('flotamilSent').checked=false;renderFlotamilBalance();alert(`Baixa realizada com sucesso. ${qty.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg enviados. O documento Word para impressão foi gerado automaticamente. Saldo restante: ${Math.max(0,flotamilBalance()).toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);
+ }catch(err){alert('Erro ao registrar a baixa: '+friendlyError(err));}
+}
+function generateFlotamilWord(qty){
+ const printedQty=Number(qty).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});
+ const wordHtml=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>FARINHA PARA O FLOTAMIL</title><style>@page WordSection1{size:841.9pt 595.3pt;margin:0;mso-page-orientation:landscape}div.WordSection1{page:WordSection1}html,body{margin:0;padding:0}table{width:841.9pt;height:595.3pt;border-collapse:collapse}td{text-align:center;vertical-align:middle;font-family:Arial,sans-serif;font-size:72pt;font-weight:700;line-height:1.15;color:#000}.line,.quantity{font-size:72pt;margin-top:20pt}</style></head><body><div class="WordSection1"><table role="presentation"><tr><td><div>FARINHA PARA O FLOTAMIL</div><div class="line">COD. 691</div><div class="quantity">${printedQty} KG</div></td></tr></table></div></body></html>`;
+ const blob=new Blob(['\ufeff',wordHtml],{type:'application/msword;charset=utf-8'}),link=document.createElement('a');
+ link.href=URL.createObjectURL(blob);link.download=`FARINHA_PARA_O_FLOTAMIL_${today().replaceAll('-','')}.doc`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1500);
+}
 function renderLossHistory(){
- const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>m.kind==='PERDA'&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
- $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(m.reason||'')}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
+ const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>(m.kind==='PERDA'||m.sector==='Farinha para o Flotamil')&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+ $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(movementPurpose(m))}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
+}
+function movementPurpose(m){
+ if(m.reason)return m.reason;
+ if(m.sector==='Farinha para o Flotamil')return m.kind==='ENTRADA'?'Farinha registrada para envio':'Enviado ao Flotamil';
+ const match=String(m.note||'').match(/^Motivo:\s*([^|—]+)/i);return match?match[1].trim():'Perda / descarte';
 }
 function exportLossCSV(){
- const rows=[['Data','Setor','Código','Tipo','Lote/Referência','Quantidade','Unidade','Motivo/Finalidade','Responsável','Observação']];db.movements.filter(m=>m.kind==='PERDA').forEach(m=>rows.push([m.date,m.sector,m.code,m.type,m.lot,m.qty,m.sector==='Farinha para o Flotamil'?'kg':'BAGS',m.reason,m.responsible,m.note]));
+ const rows=[['Data','Movimento','Setor','Código','Tipo','Lote/Referência','Quantidade','Unidade','Motivo/Finalidade','Responsável','Observação']];db.movements.filter(m=>m.kind==='PERDA'||m.sector==='Farinha para o Flotamil').forEach(m=>rows.push([m.date,m.kind,m.sector,m.code,m.type,m.lot,m.qty,m.sector==='Farinha para o Flotamil'?'kg':'BAGS',movementPurpose(m),m.responsible,m.note]));
  const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`perdas_bags_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
 }
 function renderStock(){
@@ -669,6 +704,7 @@ function updateAll(){
   renderProductLotHistory();
   renderUnifiedAnalysis();
   renderLossHistory();
+  renderFlotamilBalance();
   renderFIFO();
 
  renderDockCards();
@@ -676,6 +712,8 @@ function updateAll(){
 
 function friendlyError(err){
   const msg=err?.message||String(err||'Erro desconhecido');
+  if(/movements_sector_check/i.test(msg)) return 'O setor Farinha para o Flotamil ainda não foi liberado no Supabase. Execute a alteração da restrição movements_sector_check no SQL Editor e atualize esta página.';
+  if(/schema cache/i.test(msg)) return 'O banco ainda não reconheceu a estrutura usada pelo aplicativo. Atualize a página e confirme se o SQL foi executado no projeto correto.';
   if(/Failed to fetch/i.test(msg)) return 'Não foi possível conectar ao Supabase. Verifique a internet, a URL do projeto e se o projeto está ativo.';
   if(/JWT issued at future/i.test(msg)) return 'O relógio do dispositivo está adiantado em relação ao servidor. Ajuste data, hora e fuso horário automaticamente e tente novamente.';
   if(/JWT expired|Invalid JWT|JWT/i.test(msg)) return 'A sessão de acesso expirou ou ficou inválida. Entre novamente no aplicativo.';
@@ -735,6 +773,9 @@ async function editDock(id){
 
 async function deleteMovement(id){
   const m=db.movements.find(x=>x.id===id); if(!m)return;
+  if(m.sector==='Farinha para o Flotamil'&&m.kind==='ENTRADA'&&flotamilBalance()-Number(m.qty)<0){
+    return alert('Não é possível apagar este registro porque já existem baixas de envio vinculadas e o saldo ficaria negativo.');
+  }
   if(m.kind==='ENTRADA'){
     const saldoAtual=movementStock(m.sector,m.lot);
     if(saldoAtual-Number(m.qty)<0){
@@ -900,21 +941,22 @@ $('lossForm').addEventListener('submit',async e=>{
   const sec=$('lossSector').value,lot=$('lossLot').value.trim(),q=Number($('lossQty').value);
   if(sec==='Farinha para o Flotamil'){
    const weights=[...document.querySelectorAll('.pallet-weight')].map(x=>Number(x.value));
-   if(!weights.length||weights.some(x=>!Number.isFinite(x)||x<=0))return alert('Informe o peso em kg de todos os paletes.');
+   if(!weights.length||weights.some(x=>!Number.isInteger(x)||x<=0))return alert('Informe o peso de todos os paletes em quilos inteiros, sem casas decimais.');
    const total=weights.reduce((a,b)=>a+b,0),details=weights.map((kg,i)=>`Palete ${i+1}: ${kg.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg`).join(' | '),userNote=$('lossNote').value.trim();
-   const m={date:$('lossDate').value,kind:'PERDA',sector:sec,type:'Farinha',code:'FLOTAMIL',lot:`FLOTAMIL-${$('lossDate').value.replaceAll('-','')}`,qty:total,reason:'Envio ao Flotamil',responsible:$('lossResponsible').value.trim(),note:`${details}${userNote?' — '+userNote:''}`};
+   const m={date:$('lossDate').value,kind:'ENTRADA',sector:sec,type:'Farinha',code:'691',lot:`FLOTAMIL-${$('lossDate').value.replaceAll('-','')}`,qty:total,responsible:$('lossResponsible').value.trim(),note:`ENTRADA NO SALDO | Produto: Farinha — código 691 | ${details}${userNote?' — '+userNote:''}`};
    if(!m.date)return alert('Informe a data.');
-   await addMovement(m);e.target.reset();setToday('lossDate');$('palletCount').value=1;syncLossType();alert(`${weights.length} palete(s) registrado(s). Total para envio ao Flotamil: ${total.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg.`);return;
+   await addMovement(m);e.target.reset();setToday('lossDate');$('palletCount').value=1;syncLossType();alert(`${weights.length} palete(s) registrado(s). Foram acrescentados ${total.toLocaleString('pt-BR',{maximumFractionDigits:2})} kg ao saldo disponível para envio.`);return;
   }
   if(!CONFIG[sec]||!$('lossDate').value||!lot||!Number.isInteger(q)||q<1||!$('lossReason').value)return alert('Informe data, setor, lote, quantidade e motivo.');
   const item=fifoLots(sec).find(x=>String(x.lot).toLowerCase()===lot.toLowerCase());
   if(!item)return alert(`O lote ${lot} não foi encontrado ou não possui saldo disponível em ${sec}.`);
   if(q>item.qty)return alert(`Saldo insuficiente no lote ${item.lot}. Saldo disponível: ${item.qty} BAG(s).`);
-  const m={date:$('lossDate').value,kind:'PERDA',sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,lot:item.lot,qty:q,reason:$('lossReason').value,responsible:$('lossResponsible').value.trim(),note:$('lossNote').value.trim()};
+  const reason=$('lossReason').value,userNote=$('lossNote').value.trim();
+  const m={date:$('lossDate').value,kind:'PERDA',sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,lot:item.lot,qty:q,responsible:$('lossResponsible').value.trim(),note:`Motivo: ${reason}${userNote?' | '+userNote:''}`};
   await addMovement(m);e.target.reset();setToday('lossDate');syncLossType();alert(`Perda de ${q} BAG(s) registrada no lote ${item.lot}. O estoque foi reduzido.`);
  }catch(err){alert('Erro ao registrar perda: '+friendlyError(err));}
 });
-$('lossForm').addEventListener('reset',()=>setTimeout(()=>{syncLossType();renderPalletInputs();},0));
+$('lossForm').addEventListener('reset',()=>setTimeout(()=>{syncLossType();renderPalletInputs();$('flotamilSent').checked=false;$('flotamilSentKg').value='';},0));
 
 $('productLotForm').addEventListener('submit',async e=>{
   e.preventDefault();
