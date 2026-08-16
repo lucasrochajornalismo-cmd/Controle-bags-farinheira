@@ -60,13 +60,9 @@ th{background:#f5f8fa;font-size:12px;white-space:nowrap}
 .empty{text-align:center;color:var(--muted);padding:25px}.small{font-size:12px;color:var(--muted)}
 .stock-ok{color:var(--green);font-weight:800}.stock-low{color:var(--red);font-weight:800}
 .lot-card{padding:11px;background:#f7f9fb;border-radius:8px;margin-bottom:8px}.lot-card strong{display:block}
-#loginScreen{position:fixed;inset:0;background:#17212b;display:grid;grid-template-columns:minmax(360px,1.25fr) minmax(380px,.75fr);z-index:9999;overflow:auto}
-.cover-art{min-height:100%;background:#211a15 url('capa-farinheira-flotamil-colorifico.jpg') center/cover no-repeat;position:relative}
-.cover-art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 68%,rgba(23,33,43,.3))}
-.login-side{display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(145deg,#082f52,#1769aa)}
-.login-box{background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:32px;max-width:460px;width:100%}
+#loginScreen{position:fixed;inset:0;background:#f5f7fb;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.login-box{background:#fff;border-radius:16px;box-shadow:0 10px 35px rgba(0,0,0,.12);padding:28px;max-width:460px;width:100%}
 .login-box h2{margin-top:0;font-size:28px}.login-box input{padding:13px;margin:6px 0}
-.login-logo{display:none;width:112px;height:112px;object-fit:cover;border-radius:50%;margin:0 auto 16px;box-shadow:0 8px 25px rgba(0,0,0,.25);border:3px solid #fff}
 #userBar{position:fixed;right:18px;top:78px;z-index:1000;background:#fff;padding:6px 10px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:12px}
 #userBar button{margin-left:8px}
 #loginMsg{min-height:18px;margin-bottom:0}
@@ -74,15 +70,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:900px){.cards,.dashboard-cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.container{padding:0 9px}}
 @media(max-width:560px){.sent-fields{grid-template-columns:1fr}}
-@media(max-width:780px){
-  #loginScreen{display:flex;align-items:flex-end;justify-content:center;padding:24px 16px;background:#211a15 url('capa-farinheira-flotamil-colorifico.jpg') center top/cover no-repeat}
-  #loginScreen:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 30%,rgba(8,47,82,.88) 77%,#082f52)}
-  .cover-art{display:none}.login-side{position:relative;width:100%;padding:0;background:none}.login-box{padding:22px;max-width:430px}.login-box h2{font-size:23px}.login-logo{display:block}
-}
 .fifo-first{border:2px solid var(--green);background:#edf9f2;border-radius:12px;padding:16px;margin-bottom:14px}.fifo-row{display:grid;grid-template-columns:70px 1fr 120px 120px 120px;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}.fifo-priority{font-size:22px;font-weight:900}.fifo-tag{display:inline-block;padding:5px 8px;border-radius:99px;background:#dff5e9;color:#11683d;font-size:11px;font-weight:800}.fifo-next{background:#f7f9fb;border-radius:10px;margin-bottom:8px}.fifo-muted{color:var(--muted);font-size:12px}@media(max-width:800px){.fifo-row{grid-template-columns:55px 1fr 1fr}.fifo-row>*:nth-child(n+4){grid-column:auto}}
 .hint{font-size:11px;color:#657482;margin-top:4px}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#f8fafc}.compare-card.today-card{border:2px solid var(--primary)}.compare-title{font-weight:800;font-size:16px;margin-bottom:12px}.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px}.metric span{display:block;font-size:11px;color:var(--muted)}.metric strong{display:block;font-size:20px;margin-top:4px}@media(max-width:700px){.compare-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr 1fr}}
 .flotamil-box{grid-column:1/-1;display:none;background:#eef8f2;border:1px solid #bfdfca;border-radius:14px;padding:16px}.pallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}.total-kg{margin-top:14px;background:linear-gradient(135deg,#11683d,#16834b);color:#fff;border-radius:13px;padding:16px}.total-kg .label{color:#dff5e9}.total-kg .value{font-size:34px}
 .send-check{display:flex;align-items:center;gap:10px;margin-top:16px;padding:13px;background:#fff;border:1px solid #bfdfca;border-radius:10px;font-weight:800}.send-check input{width:20px;height:20px;accent-color:var(--green)}.sent-fields{display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.label-reader{grid-column:1/-1;border:1px dashed #8bb8d8;background:#f2f8fd;border-radius:12px;padding:13px}.label-reader .actions{margin-top:0}.reader-status{margin-top:8px;font-size:12px;color:var(--muted)}.reader-status.busy{color:var(--primary);font-weight:700}.reader-status.ok{color:var(--green);font-weight:700}.reader-status.error{color:var(--red);font-weight:700}
 </style>
 <style>
 /* Área de usuário compacta para GitHub Pages */
@@ -100,19 +92,15 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <body>
 
 <div id="loginScreen">
-  <div class="cover-art" role="img" aria-label="Farinheira, Flotamil e Colorífico"></div>
-  <div class="login-side">
-    <div class="login-box">
-      <img class="login-logo" src="icone-192.png" alt="Símbolo Farinheira Flotamil Colorífico">
-      <h2>🔐 Controle de BAGS</h2>
-      <p>Entre para acessar o estoque compartilhado.</p>
-      <form id="loginForm">
-        <input id="loginEmail" type="email" placeholder="E-mail" autocomplete="username" required>
-        <input id="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" required>
-        <button id="loginButton" class="btn primary" style="width:100%;margin-top:10px" type="submit">Entrar</button>
-      </form>
-      <p id="loginMsg" class="small"></p>
-    </div>
+  <div class="login-box">
+    <h2>🔐 Controle de BAGS</h2>
+    <p>Entre para acessar o estoque compartilhado.</p>
+    <form id="loginForm">
+      <input id="loginEmail" type="email" placeholder="E-mail" required>
+      <input id="loginPassword" type="password" placeholder="Senha" required>
+      <button id="loginButton" class="btn primary" style="width:100%;margin-top:10px" type="submit">Entrar</button>
+    </form>
+    <p id="loginMsg" class="small"></p>
   </div>
 </div>
 
@@ -171,6 +159,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="panel"><h2>➕ Entrada de BAGS no estoque</h2>
 <div class="info">Registre aqui as entradas de novos Big Bags. A entrada altera automaticamente o saldo do estoque e fica vinculada ao lote informado.</div>
 <form id="entryForm"><div class="form-grid">
+<div class="label-reader"><div class="actions"><label class="btn primary">📷 Ler etiqueta<input type="file" accept="image/*" capture="environment" hidden onchange="readBagLabel(event,'entry')"></label></div><div id="entryReaderStatus" class="reader-status">Fotografe a etiqueta para preencher código, setor e lote.</div></div>
 <div class="field"><label>Data *</label><input type="date" id="eDate" required></div>
 <div class="field"><label>Setor *</label><select id="eSector" onchange="syncEntryType()" required><option>Farinheira</option><option>Colorífico</option></select></div>
 <div class="field"><label>Quantidade de BAGS *</label><input type="number" id="eQty" min="1" step="1" required></div>
@@ -228,6 +217,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="panel"><h2>🔄 Registrar consumo de BAGS</h2>
 <div class="alert">O consumo será registrado automaticamente pela regra <strong>FIFO</strong>: primeiro o lote mais antigo com saldo. Se a quantidade não couber em um único lote, o sistema continuará automaticamente nos próximos lotes. Entradas do mesmo lote feitas em dias diferentes são somadas no mesmo lote.</div>
 <form id="consumptionForm"><div class="form-grid">
+<div class="label-reader"><div class="actions"><label class="btn primary">📷 Ler etiqueta<input type="file" accept="image/*" capture="environment" hidden onchange="readBagLabel(event,'consumption')"></label></div><div id="consumptionReaderStatus" class="reader-status">Fotografe a etiqueta para preencher código, setor e lote utilizado.</div></div>
 <div class="field"><label>Data *</label><input type="date" id="cDate" required></div>
 <div class="field"><label>Setor *</label><select id="cSector" onchange="syncConsumption()"><option>Farinheira</option><option>Colorífico</option></select></div>
 <div class="field"><label>Quantidade de BAGS *</label><input type="number" id="cQty" min="1" step="1" required></div>
@@ -279,6 +269,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="panel"><h2>⚠️ Perda, descarte e farinha para o Flotamil</h2>
 <div id="lossHelp" class="alert">Use quando um Big Bag rasgar, for danificado ou precisar ser descartado. A perda reduz automaticamente o estoque do lote e fica registrada para consulta.</div>
 <form id="lossForm"><div class="form-grid">
+<div class="label-reader bag-loss-only"><div class="actions"><label class="btn primary">📷 Ler etiqueta<input type="file" accept="image/*" capture="environment" hidden onchange="readBagLabel(event,'loss')"></label></div><div id="lossReaderStatus" class="reader-status">Fotografe a etiqueta do BAG para preencher código, setor e lote do descarte.</div></div>
 <div class="field"><label>Data *</label><input type="date" id="lossDate" required></div>
 <div class="field"><label>Setor *</label><select id="lossSector" onchange="syncLossType()"><option>Farinheira</option><option>Colorífico</option><option>Farinha para o Flotamil</option></select></div>
 <div class="field bag-loss-only"><label>Quantidade de BAGS perdidos *</label><input type="number" id="lossQty" min="1" step="1" required></div>
@@ -317,6 +308,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 'use strict';
 
@@ -335,6 +327,59 @@ let docks = {records:[]};
 let deferredInstallPrompt = null;
 
 const $ = id => document.getElementById(id);
+
+function setReaderStatus(mode,message,state=''){
+  const el=$(`${mode}ReaderStatus`);
+  if(!el)return;
+  el.className=`reader-status ${state}`.trim();
+  el.textContent=message;
+}
+
+function extractBagLabel(text){
+  const normalized=String(text||'').toUpperCase().replace(/[|]/g,'I');
+  const compact=normalized.replace(/\s+/g,'');
+  const codeMatch=compact.match(/143[67]/);
+  const lotLine=normalized.split(/\r?\n/).find(line=>/\bLOT(?:E)?\b/.test(line))||'';
+  const lotMatch=lotLine.match(/\bLOT(?:E)?\s*[:;.]?\s*([A-Z0-9][A-Z0-9\s-]{5,20})/);
+  const candidate=(lotMatch?.[1]||'').replace(/[^A-Z0-9-]/g,'').slice(0,16);
+  const standardLot=candidate.match(/[0-9O]{4}[A-Z][0-9O]{2}[A-Z1]{2}/)?.[0]||candidate;
+  const lot=standardLot.replace(/^([0-9O]{4})([A-Z])([0-9O]{2})([A-Z1]{2})$/,(_,a,b,c,d)=>`${a.replaceAll('O','0')}${b}${c.replaceAll('O','0')}${d.replaceAll('1','I')}`);
+  return {code:codeMatch?.[0]||'',lot};
+}
+
+function applyBagLabel(mode,{code,lot}){
+  const sector=code==='1437'?'Farinheira':code==='1436'?'Colorífico':'';
+  if(!sector)throw new Error('Código não reconhecido. Use uma etiqueta com código 1437 ou 1436.');
+  if(!lot)throw new Error('O lote não foi identificado. Aproxime a câmera e mantenha a etiqueta inteira e bem iluminada.');
+  if(mode==='entry'){
+    $('eSector').value=sector;$('eLot').value=lot;syncEntryType();
+  }else if(mode==='consumption'){
+    $('cSector').value=sector;$('cManualLot').value=lot;syncConsumption();
+  }else if(mode==='loss'){
+    $('lossSector').value=sector;$('lossLot').value=lot;syncLossType();
+  }else throw new Error('Local de leitura inválido.');
+  return sector;
+}
+
+async function readBagLabel(event,mode){
+  const input=event.target,file=input.files?.[0];
+  if(!file)return;
+  if(!window.Tesseract){
+    setReaderStatus(mode,'Não foi possível carregar o leitor. Verifique a internet e tente novamente.','error');
+    input.value='';return;
+  }
+  setReaderStatus(mode,'Lendo a etiqueta… mantenha esta tela aberta.','busy');
+  try{
+    const result=await Tesseract.recognize(file,'por+eng',{rotateAuto:true});
+    const data=extractBagLabel(result?.data?.text);
+    const sector=applyBagLabel(mode,data);
+    setReaderStatus(mode,`Leitura concluída: código ${data.code} · ${sector} · lote ${data.lot}. Confira os campos antes de salvar.`,'ok');
+  }catch(error){
+    setReaderStatus(mode,error?.message||'Não foi possível ler a etiqueta. Tente novamente com mais luz e sem reflexos.','error');
+  }finally{
+    input.value='';
+  }
+}
 
 function today(){
   const d=new Date();
@@ -597,7 +642,7 @@ function printFlotamilLabel(qty){
 }
 function renderLossHistory(){
  const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>(m.kind==='PERDA'||m.sector==='Farinha para o Flotamil')&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
- $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(movementPurpose(m))}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
+ $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(movementPurpose(m))}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn primary" style="padding:6px 9px;font-size:11px" type="button" onclick="editMovement(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
 }
 function movementPurpose(m){
  if(m.reason)return m.reason;
