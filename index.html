@@ -308,7 +308,6 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 'use strict';
 
@@ -325,6 +324,7 @@ let currentUser = null;
 let db = {movements:[],productLots:[]};
 let docks = {records:[]};
 let deferredInstallPrompt = null;
+let tesseractLoadPromise = null;
 
 const $ = id => document.getElementById(id);
 
@@ -333,6 +333,20 @@ function setReaderStatus(mode,message,state=''){
   if(!el)return;
   el.className=`reader-status ${state}`.trim();
   el.textContent=message;
+}
+
+function loadTesseractOnDemand(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(tesseractLoadPromise)return tesseractLoadPromise;
+  tesseractLoadPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    script.async=true;
+    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Leitor de etiquetas indisponível.'));
+    script.onerror=()=>reject(new Error('Não foi possível baixar o leitor de etiquetas.'));
+    document.head.appendChild(script);
+  }).catch(error=>{tesseractLoadPromise=null;throw error;});
+  return tesseractLoadPromise;
 }
 
 function extractBagLabel(text){
@@ -364,12 +378,10 @@ function applyBagLabel(mode,{code,lot}){
 async function readBagLabel(event,mode){
   const input=event.target,file=input.files?.[0];
   if(!file)return;
-  if(!window.Tesseract){
-    setReaderStatus(mode,'Não foi possível carregar o leitor. Verifique a internet e tente novamente.','error');
-    input.value='';return;
-  }
-  setReaderStatus(mode,'Lendo a etiqueta… mantenha esta tela aberta.','busy');
+  setReaderStatus(mode,'Preparando o leitor de etiquetas…','busy');
   try{
+    await loadTesseractOnDemand();
+    setReaderStatus(mode,'Lendo a etiqueta… mantenha esta tela aberta.','busy');
     const result=await Tesseract.recognize(file,'por+eng',{rotateAuto:true});
     const data=extractBagLabel(result?.data?.text);
     const sector=applyBagLabel(mode,data);
@@ -765,18 +777,22 @@ function exportProductLotCSV(){
 
 function updateAll(){
   updateDashboard();
-  renderStock();
-  syncConsumption();
-  renderReport();
-  renderTrace();
-  renderDockHistory();
-  renderProductLotHistory();
-  renderUnifiedAnalysis();
-  renderLossHistory();
-  renderFlotamilBalance();
-  renderFIFO();
+  const active=document.querySelector('.page.active')?.id||'dashboard';
+  if(active!=='dashboard')renderPage(active);
+}
 
- renderDockCards();
+function renderPage(page){
+  switch(page){
+    case 'analiseSetor':renderUnifiedAnalysis();break;
+    case 'docas':renderDockCards();renderDockHistory();break;
+    case 'estoque':renderStock();break;
+    case 'consumo':syncConsumption();break;
+    case 'loteProduto':renderProductLotHistory();break;
+    case 'rastreio':renderTrace();break;
+    case 'fifo':renderFIFO();break;
+    case 'perdas':renderLossHistory();renderFlotamilBalance();break;
+    case 'relatorios':renderReport();break;
+  }
 }
 
 function friendlyError(err){
@@ -938,7 +954,7 @@ $('nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
   b.classList.add('active');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   $(b.dataset.page).classList.add('active');
-  updateAll();
+  renderPage(b.dataset.page);
 }));
 
 $('entryForm').addEventListener('submit',async e=>{
