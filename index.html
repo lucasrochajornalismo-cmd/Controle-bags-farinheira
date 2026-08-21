@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="app-version" content="2026.08.15-pwa-mobile">
+<meta name="app-version" content="2026.08.21-online-auditoria-excel">
 <meta name="theme-color" content="#0b3d66">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -79,6 +79,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 .flotamil-box{grid-column:1/-1;display:none;background:#eef8f2;border:1px solid #bfdfca;border-radius:14px;padding:16px}.pallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}.total-kg{margin-top:14px;background:linear-gradient(135deg,#11683d,#16834b);color:#fff;border-radius:13px;padding:16px}.total-kg .label{color:#dff5e9}.total-kg .value{font-size:34px}
 .send-check{display:flex;align-items:center;gap:10px;margin-top:16px;padding:13px;background:#fff;border:1px solid #bfdfca;border-radius:10px;font-weight:800}.send-check input{width:20px;height:20px;accent-color:var(--green)}.sent-fields{display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .label-reader{grid-column:1/-1;border:1px dashed #8bb8d8;background:#f2f8fd;border-radius:12px;padding:13px}.label-reader .actions{margin-top:0}.reader-status{margin-top:8px;font-size:12px;color:var(--muted)}.reader-status.busy{color:var(--primary);font-weight:700}.reader-status.ok{color:var(--green);font-weight:700}.reader-status.error{color:var(--red);font-weight:700}
+.audit-status{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:800}.audit-active{background:#dff5e9;color:#11683d}.audit-cancelled{background:#fde5e5;color:#a52d2d}.btn.warning{background:#d99000;color:#fff}
+.audit-list{display:grid;gap:14px;margin-top:16px}.audit-card{border:1px solid var(--border);border-radius:13px;background:#fff;overflow:hidden;box-shadow:0 4px 15px rgba(15,42,66,.05)}.audit-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 16px;background:#f4f8fb;border-bottom:1px solid var(--border)}.audit-card-title{font-size:16px;font-weight:800;color:var(--primary2)}.audit-card-time{font-size:12px;color:var(--muted);margin-top:4px}.audit-action{padding:6px 10px;border-radius:99px;background:#eaf3fb;color:#174d78;font-size:11px;font-weight:900;white-space:nowrap}.audit-action.cancelado{background:#fde5e5;color:#a52d2d}.audit-action.editado{background:#fff4d6;color:#77500c}.audit-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 16px}.audit-summary div{padding:9px 11px;border-radius:8px;background:#f8fafc}.audit-summary span,.audit-field span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.35px;color:var(--muted);font-weight:800;margin-bottom:4px}.audit-summary strong{display:block;overflow-wrap:anywhere}.audit-reason{margin:0 16px 14px;padding:11px 13px;border-left:4px solid var(--primary);background:#eef5fb;border-radius:7px;overflow-wrap:anywhere}.audit-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 16px}.audit-value{border:1px solid var(--border);border-radius:10px;overflow:hidden}.audit-value h3{margin:0;padding:10px 12px;font-size:13px;background:#eef3f7}.audit-value.new h3{background:#e8f7ee;color:#11683d}.audit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.audit-field{padding:9px 12px;border-bottom:1px solid #edf1f4;overflow-wrap:anywhere;min-width:0}.audit-field.full{grid-column:1/-1}.audit-empty{padding:18px;color:var(--muted);font-style:italic;text-align:center}.audit-field strong{font-size:13px}.audit-changed{background:#fff9e8}.audit-changed strong{color:#7a5200}@media(max-width:800px){.audit-summary,.audit-fields{grid-template-columns:1fr}.audit-compare{grid-template-columns:1fr}.audit-card-head{flex-direction:column}.audit-field.full{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -126,6 +128,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <button data-page="fifo">📦 FIFO — Ordem de Consumo</button>
 <button data-page="perdas">⚠️ Perda, descarte e Flotamil</button>
 <button data-page="relatorios">📋 Relatórios</button>
+<button data-page="auditoria">🛡️ Auditoria</button>
 <button data-page="backup">💾 Backup</button>
 </nav>
 
@@ -284,15 +287,17 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 
 <section id="relatorios" class="page">
 <div class="panel"><h2>📋 Histórico de movimentações</h2>
-<div class="info">Se uma entrada ou saída/consumo for lançada incorretamente, use <strong>Apagar</strong>. O sistema recalcula automaticamente o saldo, o consumo do mês e a rastreabilidade.</div>
-<div class="toolbar"><input type="date" id="rStart"><input type="date" id="rEnd"><select id="rSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><select id="rKind"><option value="">Todos</option><option value="ENTRADA">Entradas</option><option value="CONSUMO">Consumos</option><option value="PERDA">Perdas</option></select><button class="btn primary" type="button" onclick="renderReport()">Filtrar</button><button class="btn light" type="button" onclick="exportCSV()">Exportar CSV</button></div>
-<div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Setor</th><th>Código</th><th>Tipo</th><th>Lote</th><th>Qtd.</th><th>Responsável</th><th>Obs.</th><th>Ações</th></tr></thead><tbody id="reportBody"></tbody></table></div>
+<div class="info">Use <strong>Editar</strong> ou <strong>Cancelar</strong>. Registros cancelados permanecem na auditoria, mas deixam de afetar estoque, FIFO e comparações.</div>
+<div class="toolbar"><input type="date" id="rStart"><input type="date" id="rEnd"><select id="rSector"><option value="">Todos os setores</option><option>Farinheira</option><option>Colorífico</option></select><select id="rKind"><option value="">Todos</option><option value="ENTRADA">Entradas</option><option value="CONSUMO">Consumos</option><option value="PERDA">Perdas</option></select><button class="btn primary" type="button" onclick="renderReport()">Filtrar</button><button class="btn light" type="button" onclick="exportCSV()">Exportar CSV</button><button class="btn success" type="button" onclick="exportExcelComplete()">📊 Exportar Excel completo</button></div>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Setor</th><th>Código</th><th>Tipo</th><th>Lote</th><th>Qtd.</th><th>Responsável</th><th>Obs.</th><th>Status</th><th>Ações</th></tr></thead><tbody id="reportBody"></tbody></table></div>
 </div>
 </section>
 
+<section id="auditoria" class="page"><div class="panel"><h2>🛡️ Trilha de auditoria compartilhada</h2><div class="info">Edições, substituições e cancelamentos mostram valor anterior, valor novo, usuário, data, hora e justificativa.</div><div class="toolbar"><select id="auditEntity" onchange="renderAudit()"><option value="">Todos</option><option value="movements">Movimentações</option><option value="dock_records">Docas</option></select><button class="btn primary" type="button" onclick="renderAudit()">Atualizar</button><button class="btn light" type="button" onclick="exportAuditCSV()">Exportar auditoria</button></div><div id="auditBody" class="audit-list"></div></div></section>
+
 <section id="backup" class="page">
 <div class="panel"><h2>💾 Backup e restauração</h2><p class="small">Os registros ficam salvos no banco compartilhado. Faça backup antes de trocar de aparelho ou realizar alterações importantes.</p>
-<div class="actions"><button class="btn primary" type="button" onclick="downloadBackup()">Baixar backup</button><label class="btn light">Restaurar backup<input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)"></label><button class="btn danger" type="button" onclick="clearAll()">Apagar lançamentos</button></div>
+<div class="actions"><button class="btn primary" type="button" onclick="downloadBackup()">Baixar backup</button><button class="btn success" type="button" onclick="exportExcelComplete()">📊 Baixar Excel completo</button><label class="btn light">Restaurar backup<input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)"></label><button class="btn danger" type="button" onclick="clearAll()">Cancelar lançamentos ativos</button></div>
 </div>
 <div class="panel"><h2>Cadastro fixo</h2><table><thead><tr><th>Setor</th><th>Tipo</th><th>Código</th><th>Estoque inicial</th></tr></thead><tbody>
 <tr><td>Farinheira</td><td>Big Bag 1.300 kg</td><td>1437</td><td>47</td></tr>
@@ -317,7 +322,7 @@ const CONFIG = {
 };
 
 let currentUser = null;
-let db = {movements:[],productLots:[]};
+let db = {movements:[],productLots:[],auditLog:[]};
 let docks = {records:[]};
 let deferredInstallPrompt = null;
 let tesseractLoadPromise = null;
@@ -416,27 +421,32 @@ function showApp(){
 async function loadCloud(){
   if(!currentUser) return false;
 
-  const [m,l,d] = await Promise.all([
+  const [m,l,d,a] = await Promise.all([
     sb.from('movements').select('*').order('date',{ascending:true}).order('id',{ascending:true}),
     sb.from('product_lots').select('*').order('date',{ascending:true}).order('id',{ascending:true}),
-    sb.from('dock_records').select('*').order('date',{ascending:true}).order('id',{ascending:true})
+    sb.from('dock_records').select('*').order('date',{ascending:true}).order('id',{ascending:true}),
+    sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(1000)
   ]);
 
   if(m.error) throw m.error;
   if(l.error) throw l.error;
   if(d.error) throw d.error;
+  if(a.error) throw a.error;
 
-  db={movements:m.data||[],productLots:l.data||[]};
+  db={movements:m.data||[],productLots:l.data||[],auditLog:a.data||[]};
   docks={records:d.data||[]};
   updateAll();
   return true;
 }
 
+function activeMovements(){return db.movements.filter(x=>x.status!=='cancelado');}
+function activeDocks(){return docks.records.filter(x=>x.status!=='cancelado');}
+
 async function addMovement(m){
   const {data,error}=await sb.from('movements').insert({...m,created_by:currentUser.id}).select().single();
   if(error) throw error;
   db.movements.push(data);
-  updateAll();
+  await reloadAudit();updateAll();
 }
 
 async function addMovements(list){
@@ -445,14 +455,14 @@ async function addMovements(list){
   const {data,error}=await sb.from('movements').insert(payload).select();
   if(error) throw error;
   db.movements.push(...(data||[]));
-  updateAll();
+  await reloadAudit();updateAll();
 }
 
 async function addDock(m){
   const {data,error}=await sb.from('dock_records').insert({...m,created_by:currentUser.id}).select().single();
   if(error) throw error;
   docks.records.push(data);
-  updateAll();
+  await reloadAudit();updateAll();
 }
 
 async function addProductLot(x){
@@ -462,23 +472,19 @@ async function addProductLot(x){
   updateAll();
 }
 
-async function removeMovement(id){
-  const {error}=await sb.from('movements').delete().eq('id',id);
-  if(error) throw error;
-  db.movements=db.movements.filter(x=>x.id!==id);
-  updateAll();
+async function removeMovement(id,reason){
+  const patch={status:'cancelado',cancel_reason:reason,cancelled_at:new Date().toISOString(),cancelled_by:currentUser.id,change_reason:reason};
+  const {data,error}=await sb.from('movements').update(patch).eq('id',id).select().single();if(error)throw error;db.movements=db.movements.map(x=>x.id===id?data:x);await reloadAudit();updateAll();
 }
-
-async function removeDock(id){
-  const {error}=await sb.from('dock_records').delete().eq('id',id);
-  if(error) throw error;
-  docks.records=docks.records.filter(x=>x.id!==id);
-  updateAll();
+async function removeDock(id,reason){
+  const patch={status:'cancelado',cancel_reason:reason,cancelled_at:new Date().toISOString(),cancelled_by:currentUser.id,change_reason:reason};
+  const {data,error}=await sb.from('dock_records').update(patch).eq('id',id).select().single();if(error)throw error;docks.records=docks.records.map(x=>x.id===id?data:x);await reloadAudit();updateAll();
 }
+async function reloadAudit(){const {data,error}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(1000);if(error)throw error;db.auditLog=data||[];if($('auditBody'))renderAudit();}
 
 function movementStock(sec,lot){
   let q=0;
-  for(const m of db.movements){
+  for(const m of activeMovements()){
     if(m.sector!==sec || m.lot!==lot) continue;
     q += m.kind==='ENTRADA' ? Number(m.qty) : -Number(m.qty);
   }
@@ -487,7 +493,7 @@ function movementStock(sec,lot){
 
 function totalStock(sec){
   let q=0;
-  for(const m of db.movements){
+  for(const m of activeMovements()){
     if(m.sector===sec) q += m.kind==='ENTRADA' ? Number(m.qty) : -Number(m.qty);
   }
   return q;
@@ -501,12 +507,12 @@ function addDays(date,amount){
 }
 
 function latestDock(date,sector){
-  return docks.records.filter(x=>String(x.date).slice(0,10)===date&&x.sector===sector)
+  return activeDocks().filter(x=>String(x.date).slice(0,10)===date&&x.sector===sector)
     .sort((a,b)=>Number(b.id)-Number(a.id))[0]||null;
 }
 
 function entryTotalForDay(date,sector){
-  return db.movements.filter(m=>m.kind==='ENTRADA'&&String(m.date).slice(0,10)===date&&m.sector===sector)
+  return activeMovements().filter(m=>m.kind==='ENTRADA'&&String(m.date).slice(0,10)===date&&m.sector===sector)
     .reduce((sum,m)=>sum+Number(m.qty||0),0);
 }
 
@@ -542,7 +548,7 @@ function lots(sec){
 // são somadas. A primeira entrada do lote define sua prioridade.
 function fifoLots(sec){
   const map={};
-  db.movements.filter(m=>m.sector===sec && m.lot).forEach(m=>{
+  activeMovements().filter(m=>m.sector===sec && m.lot).forEach(m=>{
     const lot=String(m.lot).trim();
     if(!map[lot]) map[lot]={lot,firstDate:String(m.date),firstId:Number(m.id)||0,received:0,consumed:0,lost:0};
     const x=map[lot], d=String(m.date), id=Number(m.id)||0;
@@ -590,13 +596,13 @@ function updateDashboard(){
   $('dFar').textContent=f; $('dCol').textContent=c; $('dTotal').textContent=f+c;
 
   const prev=previousDate();
-  const prevQty=(sector,kind)=>db.movements.filter(m=>m.kind===kind&&m.sector===sector&&String(m.date).slice(0,10)===prev).reduce((a,m)=>a+Number(m.qty),0);
+  const prevQty=(sector,kind)=>activeMovements().filter(m=>m.kind===kind&&m.sector===sector&&String(m.date).slice(0,10)===prev).reduce((a,m)=>a+Number(m.qty),0);
   $('kEntryPrevFar').textContent=prevQty('Farinheira','ENTRADA');
   $('kEntryPrevCol').textContent=prevQty('Colorífico','ENTRADA');
   $('kConsPrevFar').textContent=prevQty('Farinheira','CONSUMO');
   $('kConsPrevCol').textContent=prevQty('Colorífico','CONSUMO');
 
-  const arr=[...db.movements].sort((a,b)=>String(b.date+b.id).localeCompare(String(a.date+a.id))).slice(0,6);
+  const arr=[...activeMovements()].sort((a,b)=>String(b.date+b.id).localeCompare(String(a.date+a.id))).slice(0,6);
   $('recent').innerHTML=arr.length ? arr.map(m=>`
     <div class="kpi"><div><span>${fmt(m.date)} — ${m.sector==='Farinha para o Flotamil'?(m.kind==='ENTRADA'?'Farinha registrada':'Baixa enviada'):m.kind==='ENTRADA'?'Entrada':m.kind==='PERDA'?'Perda / descarte':'Consumo'}<br>
     <small>${esc(m.sector)} • ${esc(m.lot)} • ${esc(m.type)}</small></span><strong>${m.qty}</strong></div></div>
@@ -615,15 +621,15 @@ function updateDashboard(){
 
 function previousDate(){const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function dayMetrics(sec,date){
- const ms=db.movements.filter(m=>m.sector===sec&&String(m.date).slice(0,10)===date);
+ const ms=activeMovements().filter(m=>m.sector===sec&&String(m.date).slice(0,10)===date);
  return {entradas:ms.filter(m=>m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0),consumos:ms.filter(m=>m.kind==='CONSUMO').reduce((a,m)=>a+Number(m.qty),0),perdas:ms.filter(m=>m.kind==='PERDA').reduce((a,m)=>a+Number(m.qty),0),saldo:totalStockAtDate(sec,date)};
 }
-function totalStockAtDate(sec,date){return db.movements.filter(m=>m.sector===sec&&String(m.date).slice(0,10)<=date).reduce((a,m)=>a+(m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty)),0);}
+function totalStockAtDate(sec,date){return activeMovements().filter(m=>m.sector===sec&&String(m.date).slice(0,10)<=date).reduce((a,m)=>a+(m.kind==='ENTRADA'?Number(m.qty):-Number(m.qty)),0);}
 function renderUnifiedAnalysis(){
  const sec=$('analysisSector').value,prev=previousDate(),cur=today(),a=dayMetrics(sec,prev),b=dayMetrics(sec,cur),diff=b.saldo-a.saldo;
  $('analysisCompareTitle').textContent=`${sec} — comparação do dia anterior × atual`;
  $('analysisCompare').innerHTML=`<div class="compare-grid"><div class="compare-card"><div class="compare-title">📅 Dia anterior — ${fmt(prev)}</div><div class="metric-row"><div class="metric"><span>Entradas</span><strong>${a.entradas}</strong></div><div class="metric"><span>Consumo</span><strong>${a.consumos}</strong></div><div class="metric"><span>Perdas</span><strong>${a.perdas}</strong></div></div><div class="kpi" style="margin-top:10px"><div><span>Saldo ao final do dia</span><strong>${a.saldo} BAGS</strong></div></div></div><div class="compare-card today-card"><div class="compare-title">📅 Hoje — ${fmt(cur)}</div><div class="metric-row"><div class="metric"><span>Entradas</span><strong>${b.entradas}</strong></div><div class="metric"><span>Consumo</span><strong>${b.consumos}</strong></div><div class="metric"><span>Perdas</span><strong>${b.perdas}</strong></div></div><div class="kpi" style="margin-top:10px"><div><span>Saldo atual</span><strong>${b.saldo} BAGS</strong></div><div><span>Variação do saldo</span><strong>${diff>0?'+':''}${diff} BAGS</strong></div></div></div></div>`;
- const ms=db.movements.filter(m=>m.sector===sec&&(String(m.date).slice(0,10)===prev||String(m.date).slice(0,10)===cur)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+ const ms=activeMovements().filter(m=>m.sector===sec&&(String(m.date).slice(0,10)===prev||String(m.date).slice(0,10)===cur)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
  $('analysisHistory').innerHTML=ms.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Movimento</th><th>Lote</th><th>Quantidade</th><th>Responsável</th><th>Observação</th></tr></thead><tbody>${ms.map(m=>`<tr><td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${m.kind}</span></td><td>${esc(m.lot)}</td><td><strong>${m.qty}</strong></td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma movimentação nos dois dias.</div>';
  const month=$('analysisMonth').value||today().slice(0,7);$('analysisMonth').value=month;
  const days=monthDays(sec,month),total=Object.values(days).reduce((x,y)=>x+y,0),active=Object.keys(days).length,avg=active?total/active:0,rows=Object.entries(days).sort((x,y)=>y[0].localeCompare(x[0]));
@@ -632,7 +638,7 @@ function renderUnifiedAnalysis(){
  $('analysisMonthTable').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Data</th><th>Setor</th><th>Consumo de BAGS</th></tr></thead><tbody>${rows.map(([d,q])=>`<tr><td>${fmt(d)}</td><td>${sec}</td><td><strong>${q}</strong></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhum consumo registrado no mês selecionado.</div>';
 }
 function exportUnifiedMonthlyConsumption(){exportMonthlyConsumption($('analysisSector').value,$('analysisMonth').value);}
-function monthDays(sec,month){const map={};db.movements.filter(m=>m.sector===sec&&m.kind==='CONSUMO'&&String(m.date).startsWith(month)).forEach(m=>{const d=String(m.date).slice(0,10);map[d]=(map[d]||0)+Number(m.qty);});return map;}
+function monthDays(sec,month){const map={};activeMovements().filter(m=>m.sector===sec&&m.kind==='CONSUMO'&&String(m.date).startsWith(month)).forEach(m=>{const d=String(m.date).slice(0,10);map[d]=(map[d]||0)+Number(m.qty);});return map;}
 function exportMonthlyConsumption(sec,selectedMonth=''){
  const id=sec==='Farinheira'?'far':'col',month=selectedMonth||today().slice(0,7),days=monthDays(sec,month),rows=[['Data','Setor','Consumo de BAGS']];
  Object.entries(days).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([d,q])=>rows.push([d,sec,q]));
@@ -661,7 +667,7 @@ function calculateFlotamilTotal(){
  $('flotamilTotalKg').textContent=total.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});return total;
 }
 function flotamilBalance(){
- return db.movements.filter(m=>m.sector==='Farinha para o Flotamil').reduce((sum,m)=>{
+ return activeMovements().filter(m=>m.sector==='Farinha para o Flotamil').reduce((sum,m)=>{
   if(m.kind==='ENTRADA'||(m.kind==='PERDA'&&String(m.reason||'').includes('Aguardando')))return sum+Number(m.qty||0);
   if(m.kind==='CONSUMO'||(m.kind==='PERDA'&&String(m.reason||'').includes('Enviado')))return sum-Number(m.qty||0);
   return sum;
@@ -690,8 +696,8 @@ function printFlotamilLabel(qty){
  setTimeout(()=>{try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){frame.remove();alert('Não foi possível abrir a impressão automaticamente. Verifique se o navegador permite janelas de impressão.');}setTimeout(()=>{if(frame.isConnected)frame.remove();},60000);},350);
 }
 function renderLossHistory(){
- const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=db.movements.filter(m=>(m.kind==='PERDA'||m.sector==='Farinha para o Flotamil')&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
- $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(movementPurpose(m))}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn primary" style="padding:6px 9px;font-size:11px" type="button" onclick="editMovement(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
+ const st=$('lossStart').value,en=$('lossEnd').value,sec=$('lossFilterSector').value,a=activeMovements().filter(m=>(m.kind==='PERDA'||m.sector==='Farinha para o Flotamil')&&(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
+ $('lossBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.lot)}</td><td><strong>${Number(m.qty).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${m.sector==='Farinha para o Flotamil'?'kg':'BAG(s)'}</strong></td><td>${esc(movementPurpose(m))}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><button class="btn primary" style="padding:6px 9px;font-size:11px" type="button" onclick="editMovement(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteMovement(${m.id})">Cancelar</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>';
 }
 function movementPurpose(m){
  if(m.reason)return m.reason;
@@ -699,7 +705,7 @@ function movementPurpose(m){
  const match=String(m.note||'').match(/^Motivo:\s*([^|—]+)/i);return match?match[1].trim():'Perda / descarte';
 }
 function exportLossCSV(){
- const rows=[['Data','Movimento','Setor','Código','Tipo','Lote/Referência','Quantidade','Unidade','Motivo/Finalidade','Responsável','Observação']];db.movements.filter(m=>m.kind==='PERDA'||m.sector==='Farinha para o Flotamil').forEach(m=>rows.push([m.date,m.kind,m.sector,m.code,m.type,m.lot,m.qty,m.sector==='Farinha para o Flotamil'?'kg':'BAGS',movementPurpose(m),m.responsible,m.note]));
+ const rows=[['Data','Movimento','Setor','Código','Tipo','Lote/Referência','Quantidade','Unidade','Motivo/Finalidade','Responsável','Observação']];activeMovements().filter(m=>m.kind==='PERDA'||m.sector==='Farinha para o Flotamil').forEach(m=>rows.push([m.date,m.kind,m.sector,m.code,m.type,m.lot,m.qty,m.sector==='Farinha para o Flotamil'?'kg':'BAGS',movementPurpose(m),m.responsible,m.note]));
  const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`perdas_bags_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
 }
 function renderStock(){
@@ -709,8 +715,8 @@ function renderStock(){
   for(const sec of ['Farinheira','Colorífico']){
     if(s&&s!==sec) continue;
     for(const x of lots(sec)){
-      const ent=db.movements.filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0);
-      const con=db.movements.filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='CONSUMO').reduce((a,m)=>a+Number(m.qty),0);
+      const ent=activeMovements().filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='ENTRADA').reduce((a,m)=>a+Number(m.qty),0);
+      const con=activeMovements().filter(m=>m.sector===sec&&m.lot===x.lot&&m.kind==='CONSUMO').reduce((a,m)=>a+Number(m.qty),0);
       if(String(x.lot).toLowerCase().includes(q)){
         rows.push(`<tr><td>${esc(sec)}</td><td>${CONFIG[sec].code}</td><td>${esc(CONFIG[sec].type)}</td><td>${esc(x.lot)}</td><td>${ent}</td><td>${con}</td><td class="${x.qty<=0?'stock-low':'stock-ok'}">${x.qty}</td></tr>`);
       }
@@ -721,19 +727,19 @@ function renderStock(){
 
 function renderDockHistory(){
   const st=$('dhStart').value,en=$('dhEnd').value,sec=$('dhSector').value;
-  const a=docks.records.filter(m=>(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec))
+  const a=activeDocks().filter(m=>(!st||m.date>=st)&&(!en||m.date<=en)&&(!sec||m.sector===sec))
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
   $('dockBody').innerHTML=a.length?a.map(m=>`<tr>
     <td>${fmt(m.date)}</td><td>${esc(m.sector)}</td><td>${esc(m.code)}</td><td>${esc(m.type)}</td>
     <td><strong>${m.qty}</strong></td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td>
-    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="editDock(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteDock(${m.id})">Apagar</button></td>
+    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="editDock(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteDock(${m.id})">Cancelar</button></td>
   </tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum lançamento das docas para os filtros.</td></tr>';
 }
 
 function renderTrace(){
   const s=$('traceSector').value,q=($('traceLot').value||'').trim().toLowerCase();
   if(!q){$('traceResult').innerHTML='<div class="empty">Digite um lote para visualizar sua rastreabilidade.</div>';return;}
-  const ms=db.movements.filter(m=>(!s||m.sector===s)&&String(m.lot||'').toLowerCase().includes(q))
+  const ms=activeMovements().filter(m=>(!s||m.sector===s)&&String(m.lot||'').toLowerCase().includes(q))
     .sort((a,b)=>String(a.date).localeCompare(String(b.date))||Number(a.id)-Number(b.id));
   if(!ms.length){$('traceResult').innerHTML='<div class="empty">Nenhuma movimentação encontrada para esse lote.</div>';return;}
   const first=ms.find(m=>m.kind==='ENTRADA');
@@ -767,17 +773,7 @@ function renderFIFO(){
   $('fifoResult').innerHTML=html;
 }
 
-function renderReport(){
-  const st=$('rStart').value,en=$('rEnd').value,s=$('rSector').value,k=$('rKind').value;
-  const a=db.movements.filter(m=>(!st||m.date>=st)&&(!en||m.date<=en)&&(!s||m.sector===s)&&(!k||m.kind===k))
-    .sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));
-  $('reportBody').innerHTML=a.length?a.map(m=>`<tr>
-    <td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${esc(m.kind)}</span></td>
-    <td>${esc(m.sector)}</td><td>${esc(m.code)}</td><td>${esc(m.type)}</td><td>${esc(m.lot)}</td><td>${m.qty}</td>
-    <td>${esc(m.responsible)}</td><td>${esc(m.note)}</td>
-    <td><button class="btn danger" style="padding:6px 9px;font-size:11px" type="button" onclick="editMovement(${m.id})">Editar</button><button class="btn danger" style="padding:6px 9px;font-size:11px;margin-left:4px" type="button" onclick="deleteMovement(${m.id})">Apagar</button></td>
-  </tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum registro para os filtros.</td></tr>';
-}
+function renderReport(){const st=$('rStart').value,en=$('rEnd').value,s=$('rSector').value,k=$('rKind').value;const a=db.movements.filter(m=>(!st||m.date>=st)&&(!en||m.date<=en)&&(!s||m.sector===s)&&(!k||m.kind===k)).sort((x,y)=>String(y.date).localeCompare(String(x.date))||Number(y.id)-Number(x.id));$('reportBody').innerHTML=a.length?a.map(m=>`<tr><td>${fmt(m.date)}</td><td><span class="badge ${m.kind==='ENTRADA'?'in':'out'}">${esc(m.kind)}</span></td><td>${esc(m.sector)}</td><td>${esc(m.code)}</td><td>${esc(m.type)}</td><td>${esc(m.lot)}</td><td>${m.qty}</td><td>${esc(m.responsible)}</td><td>${esc(m.note)}</td><td><span class="audit-status ${m.status==='cancelado'?'audit-cancelled':'audit-active'}">${m.status==='cancelado'?'CANCELADO':'ATIVO'}</span></td><td>${m.status==='cancelado'?'—':`<button class="btn primary" style="padding:6px 9px;font-size:11px" onclick="editMovement(${m.id})">Editar</button><button class="btn warning" style="padding:6px 9px;font-size:11px;margin-left:4px" onclick="deleteMovement(${m.id})">Cancelar</button>`}</td></tr>`).join(''):'<tr><td colspan="11" class="empty">Nenhum registro.</td></tr>';}
 
 function renderProductLotHistory(){
   const st=$('phStart').value,en=$('phEnd').value,s=$('phSector').value,q=($('phLot').value||'').trim().toLowerCase();
@@ -829,6 +825,7 @@ function renderPage(page){
     case 'fifo':renderFIFO();break;
     case 'perdas':renderLossHistory();renderFlotamilBalance();break;
     case 'relatorios':renderReport();break;
+    case 'auditoria':renderAudit();break;
   }
 }
 
@@ -850,27 +847,28 @@ async function editMovement(id){
   const qty=Number(qtyRaw);
   const responsible=prompt('Responsável:',m.responsible||''); if(responsible===null)return;
   const note=prompt('Observação:',m.note||''); if(note===null)return;
+  const editReason=prompt('Justificativa da alteração (obrigatória):','');if(editReason===null)return;if(!editReason.trim())return alert('Informe a justificativa.');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!lot.trim()||!Number.isInteger(qty)||qty<1){
     return alert('Data, lote e quantidade são obrigatórios. A quantidade deve ser um número inteiro maior que zero.');
   }
   // Verifica o saldo resultante do lote, desconsiderando o próprio registro durante a edição.
   if(m.kind==='CONSUMO'||m.kind==='PERDA'){
-    const base=db.movements.filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
+    const base=activeMovements().filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
       .reduce((a,x)=>a+(x.kind==='ENTRADA'?Number(x.qty):-Number(x.qty)),0);
     if(qty>base)return alert(`Saldo insuficiente no lote ${lot.trim()}. Disponível para esta edição: ${base} BAG(s).`);
   }
   if(m.kind==='ENTRADA'){
-    const base=db.movements.filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
+    const base=activeMovements().filter(x=>x.id!==id && x.sector===m.sector && x.lot===lot.trim())
       .reduce((a,x)=>a+(x.kind==='ENTRADA'?Number(x.qty):-Number(x.qty)),0);
     // Uma entrada editada não pode deixar nenhum saldo do lote negativo.
     if(base+qty<0)return alert('A edição deixaria o saldo do lote negativo.');
   }
   try{
-    const patch={date,lot:lot.trim(),qty,responsible:responsible.trim(),note:note.trim()};
+    const patch={date,lot:lot.trim(),qty,responsible:responsible.trim(),note:note.trim(),change_reason:editReason.trim(),updated_at:new Date().toISOString(),updated_by:currentUser.id};
     const {data,error}=await sb.from('movements').update(patch).eq('id',id).select().single();
     if(error)throw error;
     db.movements=db.movements.map(x=>x.id===id?data:x);
-    updateAll();
+    await reloadAudit();updateAll();
     alert('Movimentação editada com sucesso. O estoque e o FIFO foram recalculados.');
   }catch(e){alert('Erro ao editar movimentação: '+friendlyError(e));}
 }
@@ -882,13 +880,15 @@ async function editDock(id){
   const qty=Number(qtyRaw);
   const responsible=prompt('Responsável:',m.responsible||''); if(responsible===null)return;
   const note=prompt('Observação:',m.note||''); if(note===null)return;
+  const editReason=prompt('Justificativa da alteração nas Docas (obrigatória):','');if(editReason===null)return;if(!editReason.trim())return alert('Informe a justificativa.');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(qty)||qty<0)return alert('Informe uma data válida e uma quantidade inteira igual ou maior que zero.');
   try{
-    const patch={date,qty,responsible:responsible.trim(),note:note.trim()};
+    const duplicate=activeDocks().find(x=>x.id!==id&&String(x.date).slice(0,10)===date&&x.sector===m.sector);if(duplicate)return alert('Já existe outra contagem ativa para este dia e setor.');
+    const patch={date,qty,responsible:responsible.trim(),note:note.trim(),change_reason:editReason.trim(),updated_at:new Date().toISOString(),updated_by:currentUser.id};
     const {data,error}=await sb.from('dock_records').update(patch).eq('id',id).select().single();
     if(error)throw error;
     docks.records=docks.records.map(x=>x.id===id?data:x);
-    updateAll();
+    await reloadAudit();updateAll();
     alert('Lançamento das docas editado com sucesso.');
   }catch(e){alert('Erro ao editar lançamento: '+friendlyError(e));}
 }
@@ -896,29 +896,29 @@ async function editDock(id){
 async function deleteMovement(id){
   const m=db.movements.find(x=>x.id===id); if(!m)return;
   if(m.sector==='Farinha para o Flotamil'&&m.kind==='ENTRADA'&&flotamilBalance()-Number(m.qty)<0){
-    return alert('Não é possível apagar este registro porque já existem baixas de envio vinculadas e o saldo ficaria negativo.');
+    return alert('Não é possível cancelar este registro porque já existem baixas de envio vinculadas e o saldo ficaria negativo.');
   }
   if(m.kind==='ENTRADA'){
     const saldoAtual=movementStock(m.sector,m.lot);
     if(saldoAtual-Number(m.qty)<0){
-      return alert('Não é possível apagar esta entrada porque existem consumos vinculados a ela e o saldo do lote ficaria negativo.');
+      return alert('Não é possível cancelar esta entrada porque existem consumos vinculados a ela e o saldo do lote ficaria negativo.');
     }
   }
-  if(!confirm(`Apagar esta movimentação?\n\n${fmt(m.date)} — ${m.sector} — ${m.lot} — ${m.qty} BAG(s)\n\nO estoque será recalculado.`))return;
-  try{await removeMovement(id);alert('Movimentação apagada com sucesso.');}
+  if(!confirm(`Cancelar esta movimentação? Ela permanecerá na auditoria e deixará de afetar os cálculos.`))return;const reason=prompt('Justificativa do cancelamento:','');if(reason===null)return;if(!reason.trim())return alert('Informe a justificativa.');
+  try{await removeMovement(id,reason.trim());alert('Movimentação cancelada.');}
   catch(e){alert('Erro ao apagar: '+friendlyError(e));}
 }
 
 async function deleteDock(id){
   const m=docks.records.find(x=>x.id===id); if(!m)return;
-  if(!confirm(`Apagar este lançamento das docas?\n\n${fmt(m.date)} — ${m.sector} — ${m.qty} BAG(s)`))return;
-  try{await removeDock(id);alert('Lançamento das docas apagado com sucesso.');}
+  if(!confirm(`Cancelar este lançamento das Docas?`))return;const reason=prompt('Justificativa do cancelamento:','');if(reason===null)return;if(!reason.trim())return alert('Informe a justificativa.');
+  try{await removeDock(id,reason.trim());alert('Contagem cancelada.');}
   catch(e){alert('Erro ao apagar: '+friendlyError(e));}
 }
 
 function renderDockCards(){
  const t=today();
- const latestFor=sector=>docks.records.filter(x=>x.sector===sector&&String(x.date).slice(0,10)===t).sort((a,b)=>Number(b.id)-Number(a.id))[0];
+ const latestFor=sector=>activeDocks().filter(x=>x.sector===sector&&String(x.date).slice(0,10)===t).sort((a,b)=>Number(b.id)-Number(a.id))[0];
  const far=Number(latestFor('Farinheira')?.qty||0),col=Number(latestFor('Colorífico')?.qty||0);
  $('dockFarToday').textContent=far;$('dockColToday').textContent=col;$('dockTodayTotal').textContent=far+col;
 }
@@ -931,6 +931,7 @@ function exportDockCSV(){
   a.href=URL.createObjectURL(b);a.download=`historico_docas_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
 }
 
+const AUDIT_LABELS={date:'Data',kind:'Movimento',sector:'Setor',code:'Código',type:'Produto / tipo',lot:'Lote / referência',qty:'Quantidade',responsible:'Responsável',note:'Observação',status:'Status',fifo_status:'Situação FIFO',fifo_reason:'Motivo do desvio FIFO',fifo_supervisor:'Supervisor autorizador',cancel_reason:'Motivo do cancelamento'};const AUDIT_FIELDS=Object.keys(AUDIT_LABELS);function auditDisplayValue(k,v){if(v===null||v===undefined||v==='')return 'Não informado';if(k==='date')return fmt(v);if(k==='qty')return Number(v).toLocaleString('pt-BR');if(k==='status')return String(v).toUpperCase();return String(v);}function auditValuePanel(v,title,type,other=null){if(!v)return `<div class="audit-value ${type}"><h3>${title}</h3><div class="audit-empty">Não se aplica — registro criado.</div></div>`;const keys=AUDIT_FIELDS.filter(k=>v[k]!==undefined&&v[k]!==null&&v[k]!==''),fields=keys.map(k=>{const changed=other&&String(other[k]??'')!==String(v[k]??''),full=['note','fifo_reason','cancel_reason'].includes(k);return `<div class="audit-field${full?' full':''}${changed?' audit-changed':''}"><span>${esc(AUDIT_LABELS[k])}</span><strong>${esc(auditDisplayValue(k,v[k]))}</strong></div>`}).join('');return `<div class="audit-value ${type}"><h3>${title}</h3><div class="audit-fields">${fields}</div></div>`;}function renderAudit(){const entity=$('auditEntity')?.value||'',rows=(db.auditLog||[]).filter(x=>!entity||x.record_type===entity),body=$('auditBody');if(!body)return;body.innerHTML=rows.length?rows.map(x=>`<article class="audit-card"><div class="audit-card-head"><div><div class="audit-card-title">${x.record_type==='movements'?'Movimentação':'Contagem das Docas'} #${x.record_id}</div><div class="audit-card-time">${new Date(x.created_at).toLocaleString('pt-BR')}</div></div><span class="audit-action ${String(x.action).toLowerCase()}">${esc(x.action)}</span></div><div class="audit-summary"><div><span>Usuário</span><strong>${esc(x.user_email||'Não informado')}</strong></div><div><span>Registro</span><strong>${esc(x.record_type)}</strong></div><div><span>ID</span><strong>#${x.record_id}</strong></div></div><div class="audit-reason"><strong>Justificativa:</strong> ${esc(x.justification||'Não informada')}</div><div class="audit-compare">${auditValuePanel(x.before_value,'Valor anterior','old',x.after_value)}${auditValuePanel(x.after_value,'Valor novo','new',x.before_value)}</div></article>`).join(''):'<div class="empty">Nenhum evento de auditoria.</div>';}function downloadCSVRows(rows,name){const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}function exportAuditCSV(){const rows=[['Data e hora','Usuário','Registro','ID','Ação','Valor anterior','Valor novo','Justificativa']];db.auditLog.forEach(x=>rows.push([x.created_at,x.user_email,x.record_type,x.record_id,x.action,JSON.stringify(x.before_value||''),JSON.stringify(x.after_value||''),x.justification]));downloadCSVRows(rows,`auditoria_online_${today()}.csv`);}let sheetJsPromise=null;function loadSheetJs(){if(window.XLSX)return Promise.resolve();if(sheetJsPromise)return sheetJsPromise;sheetJsPromise=new Promise((ok,fail)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=ok;s.onerror=()=>fail(new Error('Não foi possível carregar o gerador de Excel.'));document.head.appendChild(s);});return sheetJsPromise;}async function exportExcelComplete(){try{await loadSheetJs();const wb=XLSX.utils.book_new(),sets=[['Movimentações',[['Data','Movimento','Setor','Código','Tipo','Lote','Quantidade','Responsável','Observação','Status'],...db.movements.map(m=>[m.date,m.kind,m.sector,m.code,m.type,m.lot,m.qty,m.responsible,m.note,m.status])]],['Docas',[['Data','Setor','Código','Tipo','Quantidade','Responsável','Observação','Status'],...docks.records.map(d=>[d.date,d.sector,d.code,d.type,d.qty,d.responsible,d.note,d.status])]],['FIFO',[['Setor','Lote','Primeira entrada','Recebido','Consumido','Perdas','Saldo','Prioridade'],...['Farinheira','Colorífico'].flatMap(sec=>fifoLots(sec).map((x,i)=>[sec,x.lot,x.firstDate,x.received,x.consumed,x.lost,x.qty,i+1]))]],['Auditoria',[['Data e hora','Usuário','Registro','ID','Ação','Anterior','Novo','Justificativa'],...db.auditLog.map(x=>[x.created_at,x.user_email,x.record_type,x.record_id,x.action,JSON.stringify(x.before_value||''),JSON.stringify(x.after_value||''),x.justification])]]];for(const [n,data] of sets)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),n);XLSX.writeFile(wb,`Controle_Estoque_Online_${today()}.xlsx`);}catch(e){alert(friendlyError(e));}}
 function exportCSV(){
   const rows=[['Data','Movimento','Setor','Código','Tipo de BAG','Lote','Quantidade','Responsável','Observação']];
   db.movements.forEach(m=>rows.push([m.date,m.kind,m.sector,m.code,m.type,m.lot,m.qty,m.responsible,m.note]));
@@ -940,7 +941,7 @@ function exportCSV(){
 }
 
 function downloadBackup(prefix='backup_rastreabilidade_bags'){
-  const backup={version:7,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records};
+  const backup={version:8,exported_at:new Date().toISOString(),movements:db.movements,productLots:db.productLots,docks:docks.records,auditLog:db.auditLog};
   const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download=`${prefix}_${today()}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -951,40 +952,12 @@ async function restoreBackup(ev){
   try{
     const x=JSON.parse(await f.text());
     if(!Array.isArray(x.movements)||!Array.isArray(x.productLots||[])||!Array.isArray(x.docks||[])) throw new Error('Estrutura do backup inválida.');
-    if(!confirm('Restaurar este backup substituirá os lançamentos atuais no banco compartilhado. Um backup automático dos dados atuais será baixado antes da restauração. Continuar?'))return;
-    downloadBackup('backup_antes_da_restauracao');
-
-    let r=await sb.from('movements').delete().not('id','is',null); if(r.error)throw r.error;
-    r=await sb.from('product_lots').delete().not('id','is',null); if(r.error)throw r.error;
-    r=await sb.from('dock_records').delete().not('id','is',null); if(r.error)throw r.error;
-
-    if(x.movements.length){
-      const ms=x.movements.map(({id,created_at,created_by,...m})=>({...m,created_by:currentUser.id}));
-      r=await sb.from('movements').insert(ms); if(r.error)throw r.error;
-    }
-    if((x.productLots||[]).length){
-      const ps=x.productLots.map(({id,created_at,created_by,...m})=>({...m,created_by:currentUser.id}));
-      r=await sb.from('product_lots').insert(ps); if(r.error)throw r.error;
-    }
-    if((x.docks||[]).length){
-      const ds=x.docks.map(({id,created_at,created_by,...m})=>({...m,created_by:currentUser.id}));
-      r=await sb.from('dock_records').insert(ds); if(r.error)throw r.error;
-    }
-    await loadCloud();
-    alert('Backup restaurado com sucesso.');
+    alert('O arquivo é válido, mas a restauração automática foi bloqueada nesta versão para não apagar a trilha de auditoria compartilhada. A restauração deve ser realizada por um administrador do banco, preservando os registros existentes.');
   }catch(e){alert('Erro ao restaurar backup: '+friendlyError(e));}
   finally{ev.target.value='';}
 }
 
-async function clearAll(){
-  if(!confirm('Apagar todos os lançamentos? O estoque ficará zerado até que novas entradas sejam registradas.'))return;
-  try{
-    let r=await sb.from('movements').delete().not('id','is',null);if(r.error)throw r.error;
-    r=await sb.from('product_lots').delete().not('id','is',null);if(r.error)throw r.error;
-    r=await sb.from('dock_records').delete().not('id','is',null);if(r.error)throw r.error;
-    db={movements:[],productLots:[]};docks={records:[]};updateAll();alert('Lançamentos apagados.');
-  }catch(e){alert('Erro ao apagar: '+friendlyError(e));}
-}
+async function clearAll(){if(!confirm('Cancelar todos os lançamentos ativos? Eles permanecerão na auditoria.'))return;const reason=prompt('Justificativa do cancelamento em massa:','');if(reason===null)return;if(!reason.trim())return alert('Informe a justificativa.');try{const now=new Date().toISOString();let r=await sb.from('movements').update({status:'cancelado',cancel_reason:reason.trim(),cancelled_at:now,cancelled_by:currentUser.id,change_reason:reason.trim()}).eq('status','ativo');if(r.error)throw r.error;r=await sb.from('dock_records').update({status:'cancelado',cancel_reason:reason.trim(),cancelled_at:now,cancelled_by:currentUser.id,change_reason:reason.trim()}).eq('status','ativo');if(r.error)throw r.error;await loadCloud();alert('Lançamentos ativos cancelados.');}catch(e){alert('Erro ao cancelar: '+friendlyError(e));}}
 
 ['eDate','eSector','eQty','dDate','dSector','dQty'].forEach(id=>$(id)?.addEventListener('input',refreshFormComparisons));
 ['eSector','dSector'].forEach(id=>$(id)?.addEventListener('change',refreshFormComparisons));
@@ -1010,6 +983,7 @@ $('entryForm').addEventListener('submit',async e=>{
     const date=$('eDate').value;
     const comparison=dockEntryComparison(date,sec,qty);
     let note=$('eNote').value.trim();
+    if(comparison.dockQty===null){const reason=prompt(`${comparison.message}\n\nInforme a justificativa para registrar a Entrada sem contagem anterior:`,'');if(reason===null)return;if(!reason.trim())return alert('A justificativa é obrigatória.');note=`Entrada sem contagem anterior nas Docas — Justificativa: ${reason.trim()}${note?' | '+note:''}`;}
     if(comparison.status==='less'){
       const proceed=confirm(`${comparison.message}\n\nDocas de ${fmt(comparison.dockDate)}: ${comparison.dockQty} BAG(s)\nEntrada de ${fmt(comparison.entryDate)} após este registro: ${comparison.entries} BAG(s)\nDiferença: ${Math.abs(comparison.diff)} BAG(s) a menos.\n\nDeseja registrar mesmo assim?`);
       if(!proceed)return;
@@ -1038,7 +1012,8 @@ $('dockForm').addEventListener('submit',async e=>{
     const m={date:$('dDate').value,sector:sec,type:CONFIG[sec].type,code:CONFIG[sec].code,qty:Number($('dQty').value),responsible:$('dResponsible').value.trim(),note:$('dNote').value.trim()};
     if(!m.date||!Number.isInteger(m.qty)||m.qty<0)return alert('Informe a data e uma quantidade inteira válida.');
     await loadCloud();
-    await addDock(m);
+    const existing=activeDocks().find(x=>String(x.date).slice(0,10)===m.date&&x.sector===sec);if(existing){if(!confirm(`Já existe uma contagem de ${existing.qty} BAG(s). Deseja substituí-la por ${m.qty} BAG(s)?`))return;const reason=prompt('Justificativa da substituição:','');if(reason===null)return;if(!reason.trim())return alert('Informe a justificativa.');await removeDock(existing.id,`Substituída por nova contagem — ${reason.trim()}`);}
+    await addDock(m);await reloadAudit();
     const comparison=dockEntryComparison(addDays(m.date,1),sec);
     e.target.reset();setToday('dDate');syncDockType();
     alert(`Lançamento das docas registrado com sucesso.\n\n${comparison.message}\nEntrada de ${fmt(comparison.entryDate)}: ${comparison.entries} BAG(s)\nDocas de ${fmt(comparison.dockDate)}: ${comparison.dockQty} BAG(s).`);
@@ -1058,8 +1033,7 @@ $('consumptionForm').addEventListener('submit',async e=>{
     if(manualLot){
       const item=fifoLots(s).find(x=>String(x.lot).toLowerCase()===manualLot.toLowerCase());
       if(!item)return alert(`O lote ${manualLot} não foi encontrado ou não possui saldo disponível em ${s}.`);
-      if(q>item.qty)return alert(`Saldo insuficiente no lote ${item.lot}. Saldo disponível: ${item.qty} BAG(s).`);
-      movements=[{date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:item.lot,qty:q,responsible:$('cResponsible').value.trim(),note:`Lote informado manualmente — operador não seguiu FIFO — ${noteBase}`}];
+      if(q>item.qty)return alert(`Saldo insuficiente no lote ${item.lot}. Saldo disponível: ${item.qty} BAG(s).`);const first=fifoLots(s)[0];if(first&&first.lot!==item.lot){const reason=prompt(`O lote prioritário é ${first.lot}. Informe o motivo do desvio:`,'');if(reason===null)return;if(!reason.trim())return alert('Informe o motivo.');const supervisor=prompt('Supervisor que autorizou:','');if(supervisor===null)return;if(!supervisor.trim())return alert('Informe o supervisor.');movements=[{date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:item.lot,qty:q,responsible:$('cResponsible').value.trim(),fifo_status:'DESVIO AUTORIZADO',fifo_reason:reason.trim(),fifo_supervisor:supervisor.trim(),note:`Desvio manual do FIFO — Motivo: ${reason.trim()} — Autorizado por: ${supervisor.trim()} — ${noteBase}`}];}else{movements=[{date:$('cDate').value,kind:'CONSUMO',sector:s,type:CONFIG[s].type,code:CONFIG[s].code,lot:item.lot,qty:q,responsible:$('cResponsible').value.trim(),fifo_status:'CONFORME',note:`Lote prioritário informado manualmente — FIFO seguido — ${noteBase}`}];}
     }else{
       const queue=fifoLots(s);
       const total=queue.reduce((a,x)=>a+x.qty,0);
